@@ -4,6 +4,7 @@
 
 #include "Engine/OverlapResult.h"
 #include "Interfaces/InteractableInterface.h"
+#include "DrawDebugHelpers.h"
 
 // 근거리 상호작용(E) 대상 스캐너: Overlap + 거리 기준으로 가장 가까운 후보를 선택
 UInteractScannerComponent::UInteractScannerComponent()

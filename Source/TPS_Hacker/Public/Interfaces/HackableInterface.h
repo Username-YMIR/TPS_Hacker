@@ -32,7 +32,7 @@ public:
 
 	// 해킹 표시 기준 컴포넌트(아이콘/라인 연결 기준점).
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	USceneComponent* GetHackRoot() const;
+	UPrimitiveComponent* GetHackRoot() const;
 
 	// 해킹 비용/거리 같은 제약을 대상이 제공(데이터 기반 확장용).
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)

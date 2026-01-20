@@ -74,7 +74,7 @@ private:
 
 	// LineTrace 채널(프로젝트에서 Trace_Hack 만들고 넣기
 	UPROPERTY(EditAnywhere, Category="Interact|Hack|Config")
-	TEnumAsByte<ECollisionChannel> TraceChannel = ECC_GameTraceChannel3;  //ECC_GameTraceChannel3 = Trace_Hack 채널 
+	TEnumAsByte<ECollisionChannel> TraceChannel = ECC_GameTraceChannel4;  //ECC_GameTraceChannel4 = Hack 채널 
 
 	UPROPERTY(EditAnywhere, Category="Interact|Hack|Debug")
 	bool bDebugDraw = true;

@@ -34,7 +34,7 @@ public:
 	// 상호작용 대상의 "표시 기준 컴포넌트"를 반환.
 	// - 월드 스페이스 위젯 부착 위치, 하이라이트, 디버그 표시에 사용한다.
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)
-	USceneComponent* GetInteractRoot() const;
+	UPrimitiveComponent* GetInteractRoot() const;
 
 	// 상호작용(또는 해킹) 실행 엔트리 포인트.
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable)

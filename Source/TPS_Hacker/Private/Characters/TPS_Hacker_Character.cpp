@@ -13,6 +13,8 @@
 //interfaces 헤더
 #include "EnhancedInputComponent.h"
 #include "TPS_Hacker.h"
+#include "Actors/Projectile.h"
+#include "Components/ObjectPoolComponent.h"
 #include "Interfaces/InteractableInterface.h"
 #include "Interfaces/HackableInterface.h"
 
@@ -36,8 +38,11 @@ ATPS_Hacker_Character::ATPS_Hacker_Character()
 	FollowCamera->bUsePawnControlRotation = false; // SpringArm이 회전 담당함
 
 	// --- Scanners
-	InteractScanner = CreateDefaultSubobject<UInteractScannerComponent>(TEXT("CloseScanner"));
+	InteractScanner = CreateDefaultSubobject<UInteractScannerComponent>(TEXT("InteractScanner"));
 	HackScanner  = CreateDefaultSubobject<UHackScannerComponent>(TEXT("HackScanner"));
+	
+	// PoolComponent
+	PoolComp = CreateDefaultSubobject<UObjectPoolComponent>(TEXT("ObjectPool"));
 }
 
 // 카메라 좌 우 어깨 전환
@@ -68,8 +73,8 @@ void ATPS_Hacker_Character::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	//프로젝트 세팅 - 인풋 - 액션매핑에 추가
 	// "Interact" : E
 	// "Hack" : Q
-	PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &ATPS_Hacker_Character::Input_Interact);
-	PlayerInputComponent->BindAction(TEXT("Hack"), IE_Pressed, this, &ATPS_Hacker_Character::Input_Hack);
+	// PlayerInputComponent->BindAction(TEXT("Interact"), IE_Pressed, this, &ATPS_Hacker_Character::Do_Interact);
+	// PlayerInputComponent->BindAction(TEXT("Hack"), IE_Pressed, this, &ATPS_Hacker_Character::Do_Hack);
 	
 	//기본 움직임 인풋
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
@@ -84,6 +89,15 @@ void ATPS_Hacker_Character::SetupPlayerInputComponent(UInputComponent* PlayerInp
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ATPS_Hacker_Character::Look);
+		
+		// Combat
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ATPS_Hacker_Character::Do_Fire);
+		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &ATPS_Hacker_Character::Do_Aim);
+		EnhancedInputComponent->BindAction(TakedownAction, ETriggerEvent::Started, this, &ATPS_Hacker_Character::Do_Takedown);
+		
+		//Hack, Interact
+		EnhancedInputComponent->BindAction(HackAction, ETriggerEvent::Started, this, &ATPS_Hacker_Character::Do_Hack);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ATPS_Hacker_Character::Do_Interact);
 	}
 	else
 	{
@@ -109,6 +123,93 @@ void ATPS_Hacker_Character::Look(const FInputActionValue& Value)
 
 	// route the input
 	DoLook(LookAxisVector.X, LookAxisVector.Y);
+}
+
+void ATPS_Hacker_Character::Do_RunWalkToggle()
+{
+}
+
+void ATPS_Hacker_Character::Do_Hack()
+{
+	// 스캐너 유효성 검사
+	if (!HackScanner)
+		return;
+
+	//타겟 캐싱 및 유효성 검사
+	AActor* Target = HackScanner->GetCurrentTarget();
+	if (!Target)
+		return;
+
+	// 인터페이스 구현 여부 검사
+	if (!Target->GetClass()->ImplementsInterface(UHackableInterface::StaticClass()))
+		return;
+
+	//해킹 가능할 경우 실행
+	if (IHackableInterface::Execute_CanHack(Target, this))
+	{
+		IHackableInterface::Execute_ExecuteHack(Target, this);
+	}
+}
+
+void ATPS_Hacker_Character::Do_Interact()
+{
+	// 스캐너 유효성 검사
+	if (!InteractScanner)
+		return;
+	
+	//타겟 캐싱 및 유효성 섬사
+	AActor* Target = InteractScanner->GetCurrentTarget();
+	if (!Target)
+		return;
+
+	//인터페이스 구현 여부
+	if (!Target->GetClass()->ImplementsInterface(UInteractableInterface::StaticClass()))
+		return;
+
+	// 조건 확인 후 실행
+	if (IInteractableInterface::Execute_CanInteract(Target, this))
+	{
+		IInteractableInterface::Execute_OnInteract(Target, this);
+	}
+}
+
+// Input
+//  -> Fire()
+//   -> PoolComp.Acquire()
+// 	 -> Projectile.Launch()
+// 	   -> OnHit / LifeExpired
+// 		 -> ReturnToPool()
+// 임시로 캐릭터에 구현. 총기 컴포넌트에 추후 이동
+void ATPS_Hacker_Character::Do_Fire()
+{
+	UE_LOG(LogTPS, Warning, TEXT("Do_Fire()"));
+	
+	if (!PoolComp || !ProjectileClass)
+		return;
+
+	FVector TempMuzzleLoc =  GetActorLocation() + (GetActorForwardVector() * 80);
+	
+	const FVector MuzzleLoc = TempMuzzleLoc;
+	const FRotator MuzzleRot = GetActorRotation();
+	const FTransform XForm(MuzzleRot, MuzzleLoc);
+
+	AActor* Spawned = PoolComp->Acquire(ProjectileClass, XForm);
+	AProjectile* Proj = Cast<AProjectile>(Spawned);
+	if (!Proj) return;
+
+	Proj->SetOwner(this);
+	Proj->SetOwningPool(PoolComp);
+
+	const FVector Dir = MuzzleRot.Vector();
+	Proj->Launch(Dir);
+}
+
+void ATPS_Hacker_Character::Do_Aim()
+{
+}
+
+void ATPS_Hacker_Character::Do_Takedown()
+{
 }
 
 void ATPS_Hacker_Character::DoMove(float Right, float Forward)
@@ -152,49 +253,3 @@ void ATPS_Hacker_Character::DoJumpEnd()
 	// signal the character to stop jumping
 	StopJumping();
 }
-
-
-void ATPS_Hacker_Character::Input_Interact()
-{
-	// 스캐너 유효성 검사
-	if (!InteractScanner)
-		return;
-	
-	//타겟 캐싱 및 유효성 섬사
-	AActor* Target = InteractScanner->GetCurrentTarget();
-	if (!Target)
-		return;
-
-	//인터페이스 구현 여부
-	if (!Target->GetClass()->ImplementsInterface(UInteractableInterface::StaticClass()))
-		return;
-
-	// 조건 확인 후 실행
-	if (IInteractableInterface::Execute_CanInteract(Target, this))
-	{
-		IInteractableInterface::Execute_OnInteract(Target, this);
-	}
-}
-
-void ATPS_Hacker_Character::Input_Hack()
-{
-	// 스캐너 유효성 검사
-	if (!HackScanner)
-		return;
-
-	//타겟 캐싱 및 유효성 검사
-	AActor* Target = HackScanner->GetCurrentTarget();
-	if (!Target)
-		return;
-
-	// 인터페이스 구현 여부 검사
-	if (!Target->GetClass()->ImplementsInterface(UHackableInterface::StaticClass()))
-		return;
-
-	//해킹 가능할 경우 실행
-	if (IHackableInterface::Execute_CanHack(Target, this))
-	{
-		IHackableInterface::Execute_ExecuteHack(Target, this);
-	}
-}
-

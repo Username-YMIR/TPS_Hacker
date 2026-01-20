@@ -12,7 +12,6 @@
 // Interact/Hack 스캐너 컴포넌트를 보유
 //  - E/Q 입력을 해당 타겟에게 인터페이스 호출로 라우팅
 
-
 class UInputAction;   
 
 UCLASS()
@@ -22,20 +21,52 @@ class TPS_HACKER_API ATPS_Hacker_Character : public ACharacter
 
 protected:
 	/** Jump Input Action */
-	UPROPERTY(EditAnywhere, Category="Input")
+	UPROPERTY(EditAnywhere, Category="Input|Movement")
 	UInputAction* JumpAction;
 
 	/** Move Input Action */
-	UPROPERTY(EditAnywhere, Category="Input")
+	UPROPERTY(EditAnywhere, Category="Input|Movement")
 	UInputAction* MoveAction;
 
 	/** Look Input Action */
-	UPROPERTY(EditAnywhere, Category="Input")
+	UPROPERTY(EditAnywhere, Category="Input|Movement")
 	UInputAction* LookAction;
 
 	/** Mouse Look Input Action */
-	UPROPERTY(EditAnywhere, Category="Input")
+	UPROPERTY(EditAnywhere, Category="Input|Movement")
 	UInputAction* MouseLookAction;
+	
+	// 달리기, 걷기 토글
+	UPROPERTY(EditAnywhere, Category="Input|Movement")
+	UInputAction* RunWalkToggleAction;
+	
+	// 해킹
+	UPROPERTY(EditAnywhere, Category="Input|Interact")
+	UInputAction* HackAction; 
+	
+	// 상호작용 (줍기)
+	UPROPERTY(EditAnywhere, Category="Input|Interact")
+	UInputAction* InteractAction; 
+	
+	// 총 발사
+	UPROPERTY(EditAnywhere, Category="Input|Combat")
+	UInputAction* FireAction;
+	
+	// 조준
+	UPROPERTY(EditAnywhere, Category="Input|Combat")
+	UInputAction* AimAction;
+	
+	//처형
+	UPROPERTY(EditAnywhere, Category="Input|Combat")
+	UInputAction* TakedownAction;
+	
+	//전투
+	UPROPERTY(EditAnywhere, Category="Combat")
+	TSubclassOf<AActor> ProjectileClass;
+	
+	UPROPERTY(EditAnywhere, Category="Combat")
+	FName MuzzleSocketName = "Muzzle";
+	
 	
 protected:
 	/** Called for movement input */
@@ -43,6 +74,14 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
+	
+	//Do - Input 시 실제 작동 함수
+	void Do_RunWalkToggle();// Shift 키, 달리기/걷기 토글
+	void Do_Hack();	    	// Q 키, 원거리 상호작용(해킹)
+	void Do_Interact();     // E 키, 근거리 상호작용
+	void Do_Fire();			// 좌클릭, 발사
+	void Do_Aim();			// 우클릭, 조준
+	void Do_Takedown();		// F키, 처형
 	
 public:
 	/** Handles move inputs from either controls or UI interfaces */
@@ -75,9 +114,6 @@ public:
 	void SetShoulder(bool bRight);
 
 private:
-	//Input
-	void Input_Interact();  // E 키, 근접 상호작용
-	void Input_Hack();		// Q 키, 원거리 상호작용(해킹)
 	
 	//Camera
 	UPROPERTY(VisibleAnywhere, Category = "Camera")
@@ -92,4 +128,10 @@ private:
 	
 	UPROPERTY(VisibleAnywhere, Category = "Intercat")
 	TObjectPtr<class UHackScannerComponent> HackScanner;
+	
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Pool")
+	TObjectPtr<class UObjectPoolComponent> PoolComp;
+	
+	
 };

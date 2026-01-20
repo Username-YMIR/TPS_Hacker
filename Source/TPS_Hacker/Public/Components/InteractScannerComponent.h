@@ -87,7 +87,7 @@ private:
 	// Overlap에 사용할 Object Channel
 	// Interactable 오브젝트 채널을 만들어서 지정하기
 	UPROPERTY(EditAnywhere, Category="Interact|Close|Config")
-	TEnumAsByte<ECollisionChannel> OverlapObjectChannel = ECC_WorldDynamic;
+	TEnumAsByte<ECollisionChannel> OverlapObjectChannel = ECC_GameTraceChannel3; // ECC_GameTraceChannel3 = Interact
 
 	// 디버그 드로우
 	UPROPERTY(EditAnywhere, Category="Interact|Close|Debug")
