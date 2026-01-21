@@ -17,9 +17,8 @@ UCLASS(abstract)
 class ATPS_HackerPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
-protected:
 
+protected:
 	/** Input Mapping Contexts */
 	UPROPERTY(EditAnywhere, Category ="Input|Input Mappings")
 	TArray<UInputMappingContext*> DefaultMappingContexts;
@@ -35,10 +34,21 @@ protected:
 	/** Pointer to the mobile controls widget */
 	TObjectPtr<UUserWidget> MobileControlsWidget;
 
+	//HUD
+	UPROPERTY(EditDefaultsOnly, Category="UI")
+	TSubclassOf<UUserWidget> HUDWidgetClass;
+
+	UPROPERTY()
+	TObjectPtr<UUserWidget> HUDWidget;
+
 	/** Gameplay initialization */
 	virtual void BeginPlay() override;
 
 	/** Input mapping context setup */
 	virtual void SetupInputComponent() override;
 
+public:
+	// 중앙 조준 Ray + HitPoint 구하는 함수
+	bool GetAimHitPoint(FVector& OutHitPoint, float Range, ECollisionChannel TraceChannel,
+	                    bool bDrawDebug = false) const;
 };

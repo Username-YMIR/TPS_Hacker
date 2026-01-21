@@ -184,7 +184,8 @@ void ACombatCharacter::ComboAttack()
 	// play the attack montage
 	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
 	{
-		const float MontageLength = AnimInstance->Montage_Play(ComboAttackMontage, 1.0f, EMontagePlayReturnType::MontageLength, 0.0f, true);
+		const float MontageLength = AnimInstance->Montage_Play(ComboAttackMontage, 1.0f,
+		                                                       EMontagePlayReturnType::MontageLength, 0.0f, true);
 
 		// subscribe to montage completed and interrupted events
 		if (MontageLength > 0.0f)
@@ -193,7 +194,6 @@ void ACombatCharacter::ComboAttack()
 			AnimInstance->Montage_SetEndDelegate(OnAttackMontageEnded, ComboAttackMontage);
 		}
 	}
-
 }
 
 void ACombatCharacter::ChargedAttack()
@@ -207,7 +207,8 @@ void ACombatCharacter::ChargedAttack()
 	// play the charged attack montage
 	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
 	{
-		const float MontageLength = AnimInstance->Montage_Play(ChargedAttackMontage, 1.0f, EMontagePlayReturnType::MontageLength, 0.0f, true);
+		const float MontageLength = AnimInstance->Montage_Play(ChargedAttackMontage, 1.0f,
+		                                                       EMontagePlayReturnType::MontageLength, 0.0f, true);
 
 		// subscribe to montage completed and interrupted events
 		if (MontageLength > 0.0f)
@@ -262,7 +263,8 @@ void ACombatCharacter::DoAttackTrace(FName DamageSourceBone)
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(this);
 
-	if (GetWorld()->SweepMultiByObjectType(OutHits, TraceStart, TraceEnd, FQuat::Identity, ObjectParams, CollisionShape, QueryParams))
+	if (GetWorld()->SweepMultiByObjectType(OutHits, TraceStart, TraceEnd, FQuat::Identity, ObjectParams, CollisionShape,
+	                                       QueryParams))
 	{
 		// iterate over each object hit
 		for (const FHitResult& CurrentHit : OutHits)
@@ -273,7 +275,8 @@ void ACombatCharacter::DoAttackTrace(FName DamageSourceBone)
 			if (Damageable)
 			{
 				// knock upwards and away from the impact normal
-				const FVector Impulse = (CurrentHit.ImpactNormal * -MeleeKnockbackImpulse) + (FVector::UpVector * MeleeLaunchImpulse);
+				const FVector Impulse = (CurrentHit.ImpactNormal * -MeleeKnockbackImpulse) + (FVector::UpVector *
+					MeleeLaunchImpulse);
 
 				// pass the damage event to the actor
 				Damageable->ApplyDamage(MeleeDamage, this, CurrentHit.ImpactPoint, Impulse);
@@ -320,11 +323,13 @@ void ACombatCharacter::CheckChargedAttack()
 	// jump to either the loop or the attack section depending on whether we're still holding the charge button
 	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
 	{
-		AnimInstance->Montage_JumpToSection(bIsChargingAttack ? ChargeLoopSection : ChargeAttackSection, ChargedAttackMontage);
+		AnimInstance->Montage_JumpToSection(bIsChargingAttack ? ChargeLoopSection : ChargeAttackSection,
+		                                    ChargedAttackMontage);
 	}
 }
 
-void ACombatCharacter::ApplyDamage(float Damage, AActor* DamageCauser, const FVector& DamageLocation, const FVector& DamageImpulse)
+void ACombatCharacter::ApplyDamage(float Damage, AActor* DamageCauser, const FVector& DamageLocation,
+                                   const FVector& DamageImpulse)
 {
 	// pass the damage event to the actor
 	FDamageEvent DamageEvent;
@@ -346,7 +351,6 @@ void ACombatCharacter::ApplyDamage(float Damage, AActor* DamageCauser, const FVe
 		// pass control to BP to play effects, etc.
 		ReceivedDamage(ActualDamage, DamageLocation, DamageImpulse.GetSafeNormal());
 	}
-
 }
 
 void ACombatCharacter::HandleDeath()
@@ -378,7 +382,8 @@ void ACombatCharacter::RespawnCharacter()
 	Destroy();
 }
 
-float ACombatCharacter::TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+float ACombatCharacter::TakeDamage(float Damage, const struct FDamageEvent& DamageEvent, AController* EventInstigator,
+                                   AActor* DamageCauser)
 {
 	// only process damage if the character is still alive
 	if (CurrentHP <= 0.0f)
@@ -465,11 +470,14 @@ void ACombatCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCom
 		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &ACombatCharacter::Look);
 
 		// Combo Attack
-		EnhancedInputComponent->BindAction(ComboAttackAction, ETriggerEvent::Started, this, &ACombatCharacter::ComboAttackPressed);
+		EnhancedInputComponent->BindAction(ComboAttackAction, ETriggerEvent::Started, this,
+		                                   &ACombatCharacter::ComboAttackPressed);
 
 		// Charged Attack
-		EnhancedInputComponent->BindAction(ChargedAttackAction, ETriggerEvent::Started, this, &ACombatCharacter::ChargedAttackPressed);
-		EnhancedInputComponent->BindAction(ChargedAttackAction, ETriggerEvent::Completed, this, &ACombatCharacter::ChargedAttackReleased);
+		EnhancedInputComponent->BindAction(ChargedAttackAction, ETriggerEvent::Started, this,
+		                                   &ACombatCharacter::ChargedAttackPressed);
+		EnhancedInputComponent->BindAction(ChargedAttackAction, ETriggerEvent::Completed, this,
+		                                   &ACombatCharacter::ChargedAttackReleased);
 	}
 }
 
@@ -483,4 +491,3 @@ void ACombatCharacter::NotifyControllerChanged()
 		PC->SetRespawnTransform(GetActorTransform());
 	}
 }
-

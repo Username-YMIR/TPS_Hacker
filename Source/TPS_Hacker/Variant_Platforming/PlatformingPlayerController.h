@@ -18,9 +18,8 @@ UCLASS(abstract)
 class APlatformingPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
-protected:
 
+protected:
 	/** Input mapping context for this player */
 	UPROPERTY(EditAnywhere, Category="Input|Input Mappings")
 	TArray<UInputMappingContext*> DefaultMappingContexts;
@@ -39,8 +38,6 @@ protected:
 	/** Character class to respawn when the possessed pawn is destroyed */
 	UPROPERTY(EditAnywhere, Category="Respawn")
 	TSubclassOf<APlatformingCharacter> CharacterClass;
-
-protected:
 
 	/** Gameplay initialization */
 	virtual void BeginPlay() override;

@@ -18,9 +18,8 @@ UCLASS(abstract)
 class ACombatPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
-protected:
 
+protected:
 	/** Input mapping context for this player */
 	UPROPERTY(EditAnywhere, Category="Input|Input Mappings")
 	TArray<UInputMappingContext*> DefaultMappingContexts;
@@ -43,8 +42,6 @@ protected:
 	/** Transform to respawn the character at. Can be set to create checkpoints */
 	FTransform RespawnTransform;
 
-protected:
-
 	/** Gameplay initialization */
 	virtual void BeginPlay() override;
 
@@ -55,14 +52,11 @@ protected:
 	virtual void OnPossess(APawn* InPawn) override;
 
 public:
-
 	/** Updates the character respawn transform */
 	void SetRespawnTransform(const FTransform& NewRespawn);
 
 protected:
-
 	/** Called if the possessed pawn is destroyed */
 	UFUNCTION()
 	void OnPawnDestroyed(AActor* DestroyedActor);
-
 };

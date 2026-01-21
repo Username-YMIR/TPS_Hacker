@@ -23,9 +23,7 @@ class ISideScrollingInteractable
 	GENERATED_BODY()
 
 public:
-
 	/** Triggers an interaction by the provided Actor */
 	UFUNCTION(BlueprintCallable, Category="Interactable")
 	virtual void Interaction(AActor* Interactor) = 0;
-
 };

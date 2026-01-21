@@ -13,5 +13,4 @@ UCLASS()
 class TPS_HACKER_API UTPS_Hacker_GameInstance : public UGameInstance
 {
 	GENERATED_BODY()
-	
 };

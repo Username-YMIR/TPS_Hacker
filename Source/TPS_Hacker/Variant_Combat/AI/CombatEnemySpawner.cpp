@@ -30,14 +30,13 @@ ACombatEnemySpawner::ACombatEnemySpawner()
 void ACombatEnemySpawner::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	// should we spawn an enemy right away?
 	if (bShouldSpawnEnemiesImmediately)
 	{
 		// schedule the first enemy spawn
 		GetWorld()->GetTimerManager().SetTimer(SpawnTimer, this, &ACombatEnemySpawner::SpawnEnemy, InitialSpawnDelay);
 	}
-
 }
 
 void ACombatEnemySpawner::EndPlay(EEndPlayReason::Type EndPlayReason)
@@ -57,7 +56,8 @@ void ACombatEnemySpawner::SpawnEnemy()
 		FActorSpawnParameters SpawnParams;
 		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
 
-		ACombatEnemy* SpawnedEnemy = GetWorld()->SpawnActor<ACombatEnemy>(EnemyClass, SpawnCapsule->GetComponentTransform(), SpawnParams);
+		ACombatEnemy* SpawnedEnemy = GetWorld()->SpawnActor<ACombatEnemy>(
+			EnemyClass, SpawnCapsule->GetComponentTransform(), SpawnParams);
 
 		// was the enemy successfully created?
 		if (SpawnedEnemy)
@@ -77,7 +77,8 @@ void ACombatEnemySpawner::OnEnemyDied()
 	if (SpawnCount <= 0)
 	{
 		// schedule the activation on depleted message
-		GetWorld()->GetTimerManager().SetTimer(SpawnTimer, this, &ACombatEnemySpawner::SpawnerDepleted, ActivationDelay);
+		GetWorld()->GetTimerManager().SetTimer(SpawnTimer, this, &ACombatEnemySpawner::SpawnerDepleted,
+		                                       ActivationDelay);
 		return;
 	}
 

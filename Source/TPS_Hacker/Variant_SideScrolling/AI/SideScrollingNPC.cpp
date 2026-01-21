@@ -7,7 +7,7 @@
 
 ASideScrollingNPC::ASideScrollingNPC()
 {
- 	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = true;
 
 	GetCharacterMovement()->MaxWalkSpeed = 150.0f;
 }
@@ -42,7 +42,8 @@ void ASideScrollingNPC::Interaction(AActor* Interactor)
 	LaunchCharacter(LaunchVector, true, true);
 
 	// set up a timer to schedule reactivation
-	GetWorld()->GetTimerManager().SetTimer(DeactivationTimer, this, &ASideScrollingNPC::ResetDeactivation, DeactivationTime, false);
+	GetWorld()->GetTimerManager().SetTimer(DeactivationTimer, this, &ASideScrollingNPC::ResetDeactivation,
+	                                       DeactivationTime, false);
 }
 
 void ASideScrollingNPC::ResetDeactivation()

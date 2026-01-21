@@ -5,7 +5,8 @@
 #include "PlatformingCharacter.h"
 #include "Components/SkeletalMeshComponent.h"
 
-void UAnimNotify_EndDash::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference)
+void UAnimNotify_EndDash::Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
+                                 const FAnimNotifyEventReference& EventReference)
 {
 	// cast the owner to the attacker interface
 	if (APlatformingCharacter* PlatformingCharacter = Cast<APlatformingCharacter>(MeshComp->GetOwner()))

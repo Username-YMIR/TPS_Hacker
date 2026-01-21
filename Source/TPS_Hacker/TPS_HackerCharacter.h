@@ -30,9 +30,8 @@ class ATPS_HackerCharacter : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Components", meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
-	
-protected:
 
+protected:
 	/** Jump Input Action */
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* JumpAction;
@@ -50,16 +49,12 @@ protected:
 	UInputAction* MouseLookAction;
 
 public:
-
 	/** Constructor */
-	ATPS_HackerCharacter();	
+	ATPS_HackerCharacter();
 
 protected:
-
 	/** Initialize input action bindings */
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-protected:
 
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
@@ -68,7 +63,6 @@ protected:
 	void Look(const FInputActionValue& Value);
 
 public:
-
 	/** Handles move inputs from either controls or UI interfaces */
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoMove(float Right, float Forward);
@@ -85,12 +79,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoJumpEnd();
 
-public:
-
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 };
-

@@ -27,13 +27,11 @@ void ASideScrollingPlayerController::BeginPlay()
 		{
 			// add the controls to the player screen
 			MobileControlsWidget->AddToPlayerScreen(0);
-
-		} else {
-
-			UE_LOG(LogTPS, Error, TEXT("Could not spawn mobile controls widget."));
-
 		}
-
+		else
+		{
+			UE_LOG(LogTPS, Error, TEXT("Could not spawn mobile controls widget."));
+		}
 	}
 }
 
@@ -43,7 +41,8 @@ void ASideScrollingPlayerController::SetupInputComponent()
 	if (IsLocalPlayerController())
 	{
 		// add the input mapping context
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<
+			UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 		{
 			for (UInputMappingContext* CurrentContext : DefaultMappingContexts)
 			{
@@ -81,7 +80,8 @@ void ASideScrollingPlayerController::OnPawnDestroyed(AActor* DestroyedActor)
 		// spawn a character at the player start
 		const FTransform SpawnTransform = ActorList[0]->GetActorTransform();
 
-		if (ASideScrollingCharacter* RespawnedCharacter = GetWorld()->SpawnActor<ASideScrollingCharacter>(CharacterClass, SpawnTransform))
+		if (ASideScrollingCharacter* RespawnedCharacter = GetWorld()->SpawnActor<ASideScrollingCharacter>(
+			CharacterClass, SpawnTransform))
 		{
 			// possess the character
 			Possess(RespawnedCharacter);

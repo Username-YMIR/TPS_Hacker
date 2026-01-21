@@ -35,11 +35,15 @@ void UInteractScannerComponent::EndPlay(const EEndPlayReason::Type EndPlayReason
 void UInteractScannerComponent::StartScan()
 {
 	if (!GetWorld())
+	{
 		return;
+	}
 
 	// 중복 실행 방지
 	if (GetWorld()->GetTimerManager().IsTimerActive(ScanTimerHandle))
+	{
 		return;
+	}
 
 	// 즉시 1회 스캔 후 주기적으로 반복
 	ScanOnce();
@@ -55,7 +59,9 @@ void UInteractScannerComponent::StartScan()
 void UInteractScannerComponent::StopScan()
 {
 	if (!GetWorld())
+	{
 		return;
+	}
 
 	// 반복 스캔 중지
 	GetWorld()->GetTimerManager().ClearTimer(ScanTimerHandle);
@@ -71,11 +77,15 @@ FVector UInteractScannerComponent::GetScanOrigin() const
 bool UInteractScannerComponent::IsValidCloseCandidate(AActor* Candidate) const
 {
 	if (!Candidate)
+	{
 		return false;
+	}
 
 	// 상호작용 인터페이스가 없는 액터는 제외
 	if (!Candidate->GetClass()->ImplementsInterface(UInteractableInterface::StaticClass()))
+	{
 		return false;
+	}
 
 	// 실제 가능 여부는 대상 액터가 판단(Owner를 Interactor로 전달)
 	AActor* Owner = GetOwner();
@@ -87,7 +97,9 @@ void UInteractScannerComponent::ScanOnce()
 	UWorld* World = GetWorld();
 	AActor* Owner = GetOwner();
 	if (!World || !Owner)
+	{
 		return;
+	}
 
 	const FVector Origin = GetScanOrigin();
 
@@ -118,7 +130,9 @@ void UInteractScannerComponent::ScanOnce()
 		{
 			AActor* Candidate = Res.GetActor();
 			if (!IsValidCloseCandidate(Candidate))
+			{
 				continue;
+			}
 
 			// 거리 비교는 sqrt 안 쓰려고 DistSquared 사용
 			// 거리의 멀고 가까운지만 비교해서 비용절감
@@ -126,7 +140,9 @@ void UInteractScannerComponent::ScanOnce()
 
 			// SphereRadius로 걸러졌더라도 MaxRange 정책을 따로 유지하고 싶을 때 여기서 한번 더 컷
 			if (DistSq > FMath::Square(MaxRange))
+			{
 				continue;
+			}
 
 			if (DistSq < BestDistSq)
 			{
@@ -167,7 +183,9 @@ void UInteractScannerComponent::SetCurrentTarget(AActor* NewTarget)
 {
 	// 동일 타겟이면 불필요한 이벤트 방지
 	if (NewTarget == CurrentTarget)
+	{
 		return;
+	}
 
 	AActor* Old = CurrentTarget;
 	CurrentTarget = NewTarget;

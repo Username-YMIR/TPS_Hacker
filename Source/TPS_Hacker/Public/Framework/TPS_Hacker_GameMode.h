@@ -13,5 +13,4 @@ UCLASS()
 class TPS_HACKER_API ATPS_Hacker_GameMode : public AGameModeBase
 {
 	GENERATED_BODY()
-	
 };

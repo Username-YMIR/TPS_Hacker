@@ -15,10 +15,6 @@ class ATPS_HackerGameMode : public AGameModeBase
 	GENERATED_BODY()
 
 public:
-	
 	/** Constructor */
 	ATPS_HackerGameMode();
 };
-
-
-

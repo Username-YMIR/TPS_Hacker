@@ -37,7 +37,8 @@ void ACombatDamageableBox::EndPlay(EEndPlayReason::Type EndPlayReason)
 	GetWorld()->GetTimerManager().ClearTimer(DeathTimer);
 }
 
-void ACombatDamageableBox::ApplyDamage(float Damage, AActor* DamageCauser, const FVector& DamageLocation, const FVector& DamageImpulse)
+void ACombatDamageableBox::ApplyDamage(float Damage, AActor* DamageCauser, const FVector& DamageLocation,
+                                       const FVector& DamageImpulse)
 {
 	// only process damage if we still have HP
 	if (CurrentHP > 0.0f)
@@ -75,4 +76,3 @@ void ACombatDamageableBox::ApplyHealing(float Healing, AActor* Healer)
 {
 	// stub
 }
-

@@ -23,7 +23,6 @@ class ASideScrollingCharacter : public ACharacter
 	UCameraComponent* Camera;
 
 protected:
-
 	/** Move Input Action */
 	UPROPERTY(EditAnywhere, Category="Input")
 	UInputAction* MoveAction;
@@ -98,12 +97,10 @@ protected:
 	bool bMovingHorizontally = false;
 
 public:
-	
 	/** Constructor */
 	ASideScrollingCharacter();
 
 protected:
-
 	/** Gameplay cleanup */
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 
@@ -111,15 +108,15 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	/** Collision handling */
-	virtual void NotifyHit(class UPrimitiveComponent* MyComp, AActor* Other, class UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
+	virtual void NotifyHit(class UPrimitiveComponent* MyComp, AActor* Other, class UPrimitiveComponent* OtherComp,
+	                       bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse,
+	                       const FHitResult& Hit) override;
 
 	/** Landing handling */
 	virtual void Landed(const FHitResult& Hit) override;
 
 	/** Handle movement mode changes to keep track of coyote time jumps */
 	virtual void OnMovementModeChanged(EMovementMode PrevMovementMode, uint8 PreviousCustomMode = 0) override;
-
-protected:
 
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
@@ -131,7 +128,6 @@ protected:
 	void DropReleased(const FInputActionValue& Value);
 
 public:
-
 	/** Handles move inputs from either controls or UI interfaces */
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoMove(float Forward);
@@ -153,7 +149,6 @@ public:
 	virtual void DoInteract();
 
 protected:
-
 	/** Handles advanced jump logic */
 	void MultiJump();
 
@@ -164,11 +159,8 @@ protected:
 	void ResetWallJump();
 
 public:
-
 	/** Sets the soft collision response. True passes, False blocks */
 	void SetSoftCollision(bool bEnabled);
-
-public:
 
 	/** Returns true if the character has just double jumped */
 	UFUNCTION(BlueprintPure, Category="Side Scrolling")

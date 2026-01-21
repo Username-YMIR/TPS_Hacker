@@ -25,10 +25,8 @@ public:
 	// 풀에서 꺼낼 때 호출 (활성화 직전/직후)
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category="Pool")
 	void OnAcquireFromPool();
-	
+
 	// 풀로 반납할 때 호출 (비활성화 직전/직후)
 	UFUNCTION(BlueprintNativeEvent, BlueprintCallable, Category = "Pool")
 	void OnReleaseToPool();
-	
-	
 };

@@ -8,7 +8,8 @@ public class TPS_Hacker : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PublicDependencyModuleNames.AddRange(new string[] {
+		PublicDependencyModuleNames.AddRange(new[]
+		{
 			"Core",
 			"CoreUObject",
 			"Engine",
@@ -23,7 +24,8 @@ public class TPS_Hacker : ModuleRules
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });
 
-		PublicIncludePaths.AddRange(new string[] {
+		PublicIncludePaths.AddRange(new[]
+		{
 			"TPS_Hacker",
 			"TPS_Hacker/Variant_Platforming",
 			"TPS_Hacker/Variant_Platforming/Animation",

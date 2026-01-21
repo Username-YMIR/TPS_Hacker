@@ -45,11 +45,15 @@ void UHackScannerComponent::StartScan()
 	// 타이머를 걸기 위해 월드 확인
 	// (에디터/종료 타이밍)
 	if (!GetWorld())
+	{
 		return;
+	}
 
 	// 중복으로 타이머가 잡히는 것 방지
 	if (GetWorld()->GetTimerManager().IsTimerActive(ScanTimerHandle))
+	{
 		return;
+	}
 
 	// 즉시 1회 스캔 후, 주기적으로 반복
 	ScanOnce();
@@ -59,7 +63,9 @@ void UHackScannerComponent::StartScan()
 void UHackScannerComponent::StopScan()
 {
 	if (!GetWorld())
+	{
 		return;
+	}
 
 	// 반복 스캔 중지
 	GetWorld()->GetTimerManager().ClearTimer(ScanTimerHandle);
@@ -85,11 +91,15 @@ bool UHackScannerComponent::IsValidHackCandidate(AActor* Candidate) const
 {
 	// 후보 자체가 없으면 제외
 	if (!Candidate)
+	{
 		return false;
+	}
 
 	// 해킹 인터페이스를 구현하지 않으면 제외
 	if (!Candidate->GetClass()->ImplementsInterface(UHackableInterface::StaticClass()))
+	{
 		return false;
+	}
 
 	// 실제 가능 여부는 대상이 판단(Owner를 인터랙터로 전달)
 	AActor* Owner = GetOwner();
@@ -101,7 +111,9 @@ void UHackScannerComponent::ScanOnce()
 	UWorld* World = GetWorld();
 	AActor* Owner = GetOwner();
 	if (!World || !Owner)
+	{
 		return;
+	}
 
 	// 현재 시점(카메라 우선) 가져오기
 	FVector ViewLoc;
@@ -169,7 +181,9 @@ void UHackScannerComponent::SetCurrentTarget(AActor* NewTarget)
 {
 	// 같은 타겟이면 이벤트/할당 생략
 	if (NewTarget == CurrentTarget)
+	{
 		return;
+	}
 
 	// 변경 전/후를 함께 전달하기 위해 Old 보관
 	AActor* Old = CurrentTarget;

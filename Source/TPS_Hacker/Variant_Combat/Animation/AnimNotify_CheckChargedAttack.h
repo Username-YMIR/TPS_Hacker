@@ -13,11 +13,11 @@ UCLASS()
 class UAnimNotify_CheckChargedAttack : public UAnimNotify
 {
 	GENERATED_BODY()
-	
-public:
 
+public:
 	/** Perform the Anim Notify */
-	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
+	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
+	                    const FAnimNotifyEventReference& EventReference) override;
 
 	/** Get the notify name */
 	virtual FString GetNotifyName_Implementation() const override;

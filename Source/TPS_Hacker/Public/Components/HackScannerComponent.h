@@ -14,7 +14,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnHackTargetChanged, AActor*, OldT
 // - IHackableInterface 구현 + CanHack 통과 대상이면 타겟으로 채택
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class TPS_HACKER_API  UHackScannerComponent : public UActorComponent
+class TPS_HACKER_API UHackScannerComponent : public UActorComponent
 {
 	GENERATED_BODY()
 
@@ -42,7 +42,6 @@ public:
 	// 타겟 변경 델리게이트 이벤트
 	UPROPERTY(BlueprintAssignable, Category="Interact|Hack")
 	FOnHackTargetChanged OnTargetChanged;
-	
 
 protected:
 	virtual void BeginPlay() override;
@@ -59,8 +58,6 @@ private:
 	// 카메라가 없으면 Owner 기준으로 대체
 	void GetViewPoint(FVector& OutLoc, FRotator& OutRot) const;
 
-private:
-	
 	// Config
 
 	UPROPERTY(EditAnywhere, Category="Interact|Hack|Config")
@@ -74,12 +71,11 @@ private:
 
 	// LineTrace 채널(프로젝트에서 Trace_Hack 만들고 넣기
 	UPROPERTY(EditAnywhere, Category="Interact|Hack|Config")
-	TEnumAsByte<ECollisionChannel> TraceChannel = ECC_GameTraceChannel4;  //ECC_GameTraceChannel4 = Hack 채널 
+	TEnumAsByte<ECollisionChannel> TraceChannel = ECC_GameTraceChannel4; //ECC_GameTraceChannel4 = Hack 채널 
 
 	UPROPERTY(EditAnywhere, Category="Interact|Hack|Debug")
 	bool bDebugDraw = true;
 
-private:
 	// -----------------------------
 	// Runtime
 	// -----------------------------

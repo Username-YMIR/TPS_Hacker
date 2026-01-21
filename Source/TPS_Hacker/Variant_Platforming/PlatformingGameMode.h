@@ -13,9 +13,8 @@ UCLASS()
 class APlatformingGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
-	
-public:
 
+public:
 	/** Constructor */
 	APlatformingGameMode();
 };

@@ -19,9 +19,8 @@ UCLASS(abstract)
 class ASideScrollingPlayerController : public APlayerController
 {
 	GENERATED_BODY()
-	
-protected:
 
+protected:
 	/** Input mapping context for this player */
 	UPROPERTY(EditAnywhere, Category="Input|Input Mappings")
 	TArray<UInputMappingContext*> DefaultMappingContexts;
@@ -41,8 +40,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Respawn")
 	TSubclassOf<ASideScrollingCharacter> CharacterClass;
 
-protected:
-
 	/** Gameplay initialization */
 	virtual void BeginPlay() override;
 
@@ -55,5 +52,4 @@ protected:
 	/** Called if the possessed pawn is destroyed */
 	UFUNCTION()
 	void OnPawnDestroyed(AActor* DestroyedActor);
-
 };

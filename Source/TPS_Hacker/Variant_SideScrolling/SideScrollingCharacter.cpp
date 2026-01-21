@@ -75,23 +75,28 @@ void ASideScrollingCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		// Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ASideScrollingCharacter::DoJumpStart);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ASideScrollingCharacter::DoJumpEnd);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this,
+		                                   &ASideScrollingCharacter::DoJumpStart);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this,
+		                                   &ASideScrollingCharacter::DoJumpEnd);
 
 		// Interacting
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ASideScrollingCharacter::DoInteract);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this,
+		                                   &ASideScrollingCharacter::DoInteract);
 
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ASideScrollingCharacter::Move);
 
 		// Dropping from platform
 		EnhancedInputComponent->BindAction(DropAction, ETriggerEvent::Triggered, this, &ASideScrollingCharacter::Drop);
-		EnhancedInputComponent->BindAction(DropAction, ETriggerEvent::Completed, this, &ASideScrollingCharacter::DropReleased);
-
+		EnhancedInputComponent->BindAction(DropAction, ETriggerEvent::Completed, this,
+		                                   &ASideScrollingCharacter::DropReleased);
 	}
 }
 
-void ASideScrollingCharacter::NotifyHit(class UPrimitiveComponent* MyComp, AActor* Other, class UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit)
+void ASideScrollingCharacter::NotifyHit(class UPrimitiveComponent* MyComp, AActor* Other,
+                                        class UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation,
+                                        FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit)
 {
 	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
 
@@ -126,7 +131,7 @@ void ASideScrollingCharacter::OnMovementModeChanged(EMovementMode PrevMovementMo
 	Super::OnMovementModeChanged(PrevMovementMode, PreviousCustomMode);
 
 	// are we falling?
-	if (GetCharacterMovement()->MovementMode == EMovementMode::MOVE_Falling)
+	if (GetCharacterMovement()->MovementMode == MOVE_Falling)
 	{
 		// save the game time when we started falling, so we can check it later for coyote time jumps
 		LastFallTime = GetWorld()->GetTimeSeconds();
@@ -265,12 +270,12 @@ void ASideScrollingCharacter::MultiJump()
 			bHasWallJumped = true;
 
 			// schedule wall jump lockout reset
-			GetWorld()->GetTimerManager().SetTimer(WallJumpTimer, this, &ASideScrollingCharacter::ResetWallJump, DelayBetweenWallJumps, false);
+			GetWorld()->GetTimerManager().SetTimer(WallJumpTimer, this, &ASideScrollingCharacter::ResetWallJump,
+			                                       DelayBetweenWallJumps, false);
 
 			return;
 		}
 	}
-
 
 
 	// test for double jump only if we haven't already tested for wall jump
@@ -284,9 +289,10 @@ void ASideScrollingCharacter::MultiJump()
 			// use the built-in CMC functionality to do the jump
 			Jump();
 
-		// no coyote time jump
-		} else {
-		
+			// no coyote time jump
+		}
+		else
+		{
 			// The movement component handles double jump but we still need to manage the flag for animation
 			if (!bHasDoubleJumped)
 			{

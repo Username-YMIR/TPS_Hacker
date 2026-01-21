@@ -11,14 +11,14 @@
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnCloseTargetChanged, AActor*, OldTarget, AActor*, NewTarget);
 
 
-UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
+UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class TPS_HACKER_API UInteractScannerComponent : public UActorComponent
 {
 	GENERATED_BODY()
 	// -----------------------------
 	// Public API
 	// -----------------------------
-	
+
 public:
 	UInteractScannerComponent();
 
@@ -62,7 +62,6 @@ private:
 	// 스캔 기준 위치(기본: Owner Actor 위치)
 	FVector GetScanOrigin() const;
 
-private:
 	// -----------------------------
 	// Config (Editor)
 	// -----------------------------
@@ -83,7 +82,7 @@ private:
 	UPROPERTY(EditAnywhere, Category="Interact|Close|Config", meta=(ClampMin="10.0", ClampMax="300.0"))
 	float SphereRadius = 100.0f;
 
-	
+
 	// Overlap에 사용할 Object Channel
 	// Interactable 오브젝트 채널을 만들어서 지정하기
 	UPROPERTY(EditAnywhere, Category="Interact|Close|Config")
@@ -93,7 +92,6 @@ private:
 	UPROPERTY(EditAnywhere, Category="Interact|Close|Debug")
 	bool bDebugDraw = true;
 
-private:
 	// -----------------------------
 	// Runtime state
 	// -----------------------------
@@ -103,5 +101,5 @@ private:
 	AActor* CurrentTarget = nullptr;
 
 	//타이머 핸들
-	FTimerHandle ScanTimerHandle;	
+	FTimerHandle ScanTimerHandle;
 };

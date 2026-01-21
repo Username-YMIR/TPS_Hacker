@@ -14,9 +14,8 @@ UCLASS(abstract)
 class USideScrollingUI : public UUserWidget
 {
 	GENERATED_BODY()
-	
-public:
 
+public:
 	/** Update the widget's pickup counter */
 	UFUNCTION(BlueprintImplementableEvent, Category="UI")
 	void UpdatePickups(int32 Amount);

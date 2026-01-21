@@ -17,9 +17,8 @@ UCLASS(abstract)
 class ASideScrollingGameMode : public AGameModeBase
 {
 	GENERATED_BODY()
-	
-protected:
 
+protected:
 	/** Class of UI widget to spawn when the game starts */
 	UPROPERTY(EditAnywhere, Category="UI")
 	TSubclassOf<USideScrollingUI> UserInterfaceClass;
@@ -32,13 +31,10 @@ protected:
 	UPROPERTY(BlueprintReadOnly, Category="Pickups")
 	int32 PickupsCollected = 0;
 
-protected:
-
 	/** Initialization */
 	virtual void BeginPlay() override;
 
 public:
-
 	/** Receives an interaction event from another actor */
 	virtual void ProcessPickup();
 };

@@ -27,13 +27,11 @@ void ACombatPlayerController::BeginPlay()
 		{
 			// add the controls to the player screen
 			MobileControlsWidget->AddToPlayerScreen(0);
-
-		} else {
-
-			UE_LOG(LogTPS, Error, TEXT("Could not spawn mobile controls widget."));
-
 		}
-
+		else
+		{
+			UE_LOG(LogTPS, Error, TEXT("Could not spawn mobile controls widget."));
+		}
 	}
 }
 
@@ -43,7 +41,8 @@ void ACombatPlayerController::SetupInputComponent()
 	if (IsLocalPlayerController())
 	{
 		// add the input mapping context
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<
+			UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 		{
 			for (UInputMappingContext* CurrentContext : DefaultMappingContexts)
 			{
@@ -79,7 +78,8 @@ void ACombatPlayerController::SetRespawnTransform(const FTransform& NewRespawn)
 void ACombatPlayerController::OnPawnDestroyed(AActor* DestroyedActor)
 {
 	// spawn a new character at the respawn transform
-	if (ACombatCharacter* RespawnedCharacter = GetWorld()->SpawnActor<ACombatCharacter>(CharacterClass, RespawnTransform))
+	if (ACombatCharacter* RespawnedCharacter = GetWorld()->SpawnActor<ACombatCharacter>(
+		CharacterClass, RespawnTransform))
 	{
 		// possess the character
 		Possess(RespawnedCharacter);

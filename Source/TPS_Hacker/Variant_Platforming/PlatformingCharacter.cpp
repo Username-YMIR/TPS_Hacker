@@ -15,7 +15,7 @@
 
 APlatformingCharacter::APlatformingCharacter()
 {
- 	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = true;
 
 	// initialize the flags
 	bHasWallJumped = false;
@@ -37,7 +37,7 @@ APlatformingCharacter::APlatformingCharacter()
 
 	// don't rotate the mesh when the controller rotates
 	bUseControllerRotationYaw = false;
-	
+
 	// Configure character movement
 	GetCharacterMovement()->GravityScale = 2.5f;
 	GetCharacterMovement()->MaxAcceleration = 1500.0f;
@@ -68,7 +68,7 @@ APlatformingCharacter::APlatformingCharacter()
 	CameraBoom->bUsePawnControlRotation = true;
 	CameraBoom->bEnableCameraLag = true;
 	CameraBoom->CameraLagSpeed = 8.0f;
-	CameraBoom->bEnableCameraRotationLag = true;	
+	CameraBoom->bEnableCameraRotationLag = true;
 	CameraBoom->CameraRotationLagSpeed = 8.0f;
 
 	// create the orbiting camera
@@ -103,13 +103,14 @@ void APlatformingCharacter::Dash()
 void APlatformingCharacter::MultiJump()
 {
 	// ignore jumps while dashing
-	if(bIsDashing)
+	if (bIsDashing)
+	{
 		return;
+	}
 
 	// are we already in the air?
 	if (GetCharacterMovement()->IsFalling())
 	{
-
 		// have we already wall jumped?
 		if (!bHasWallJumped)
 		{
@@ -123,7 +124,8 @@ void APlatformingCharacter::MultiJump()
 			FCollisionQueryParams QueryParams;
 			QueryParams.AddIgnoredActor(this);
 
-			if (GetWorld()->SweepSingleByChannel(OutHit, TraceStart, TraceEnd, FQuat(), ECollisionChannel::ECC_Visibility, TraceShape, QueryParams))
+			if (GetWorld()->SweepSingleByChannel(OutHit, TraceStart, TraceEnd, FQuat(), ECC_Visibility, TraceShape,
+			                                     QueryParams))
 			{
 				// rotate the character to face away from the wall, so we're correctly oriented for the next wall jump
 				FRotator WallOrientation = OutHit.ImpactNormal.ToOrientationRotator();
@@ -133,7 +135,8 @@ void APlatformingCharacter::MultiJump()
 				SetActorRotation(WallOrientation);
 
 				// apply a launch impulse to the character to perform the actual wall jump
-				const FVector WallJumpImpulse = (OutHit.ImpactNormal * WallJumpBounceImpulse) + (FVector::UpVector * WallJumpVerticalImpulse);
+				const FVector WallJumpImpulse = (OutHit.ImpactNormal * WallJumpBounceImpulse) + (FVector::UpVector *
+					WallJumpVerticalImpulse);
 
 				LaunchCharacter(WallJumpImpulse, true, true);
 
@@ -143,7 +146,8 @@ void APlatformingCharacter::MultiJump()
 				// raise the wall jump flag to prevent an immediate second wall jump
 				bHasWallJumped = true;
 
-				GetWorld()->GetTimerManager().SetTimer(WallJumpTimer, this, &APlatformingCharacter::ResetWallJump, DelayBetweenWallJumps, false);
+				GetWorld()->GetTimerManager().SetTimer(WallJumpTimer, this, &APlatformingCharacter::ResetWallJump,
+				                                       DelayBetweenWallJumps, false);
 			}
 			// no wall jump, try a double jump next
 			else
@@ -159,9 +163,10 @@ void APlatformingCharacter::MultiJump()
 					// enable the jump trail
 					SetJumpTrailState(true);
 
-				// no coyote time jump
-				} else {
-
+					// no coyote time jump
+				}
+				else
+				{
 					// only double jump once while we're in the air
 					if (!bHasDoubleJumped)
 					{
@@ -173,13 +178,9 @@ void APlatformingCharacter::MultiJump()
 						// enable the jump trail
 						SetJumpTrailState(true);
 					}
-
 				}
-
-				
 			}
 		}
-
 	}
 	else
 	{
@@ -235,7 +236,9 @@ void APlatformingCharacter::DoDash()
 {
 	// ignore the input if we've already dashed and have yet to reset
 	if (bHasDashed)
+	{
 		return;
+	}
 
 	// raise the dash flags
 	bIsDashing = true;
@@ -253,7 +256,8 @@ void APlatformingCharacter::DoDash()
 	// play the dash montage
 	if (UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance())
 	{
-		const float MontageLength = AnimInstance->Montage_Play(DashMontage, 1.0f, EMontagePlayReturnType::MontageLength, 0.0f, true);
+		const float MontageLength = AnimInstance->Montage_Play(DashMontage, 1.0f, EMontagePlayReturnType::MontageLength,
+		                                                       0.0f, true);
 
 		// has the montage played successfully?
 		if (MontageLength > 0.0f)
@@ -326,14 +330,16 @@ void APlatformingCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-
 		// Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &APlatformingCharacter::DoJumpStart);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &APlatformingCharacter::DoJumpEnd);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this,
+		                                   &APlatformingCharacter::DoJumpStart);
+		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this,
+		                                   &APlatformingCharacter::DoJumpEnd);
 
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &APlatformingCharacter::Move);
-		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this, &APlatformingCharacter::Look);
+		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this,
+		                                   &APlatformingCharacter::Look);
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &APlatformingCharacter::Look);
@@ -360,10 +366,9 @@ void APlatformingCharacter::OnMovementModeChanged(EMovementMode PrevMovementMode
 	Super::OnMovementModeChanged(PrevMovementMode, PreviousCustomMode);
 
 	// are we falling?
-	if (GetCharacterMovement()->MovementMode == EMovementMode::MOVE_Falling)
+	if (GetCharacterMovement()->MovementMode == MOVE_Falling)
 	{
 		// save the game time when we started falling, so we can check it later for coyote time jumps
 		LastFallTime = GetWorld()->GetTimeSeconds();
 	}
 }
-

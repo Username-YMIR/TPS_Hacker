@@ -13,13 +13,10 @@ UCLASS()
 class ASideScrollingCameraManager : public APlayerCameraManager
 {
 	GENERATED_BODY()
-	
-public:
 
+public:
 	/** Overrides the default camera view target calculation */
 	virtual void UpdateViewTarget(FTViewTarget& OutVT, float DeltaTime) override;
-
-public:
 
 	/** How close we want to stay to the view target */
 	UPROPERTY(EditAnywhere, Category="Side Scrolling Camera", meta=(ClampMin=0, ClampMax=10000, Units="cm"))
@@ -38,7 +35,6 @@ public:
 	float CameraXMaxBounds = 10000.0f;
 
 protected:
-
 	/** Last cached camera vertical location. The camera only adjusts its height if necessary. */
 	float CurrentZ = 0.0f;
 

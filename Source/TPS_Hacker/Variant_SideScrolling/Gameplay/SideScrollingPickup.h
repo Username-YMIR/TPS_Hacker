@@ -16,18 +16,16 @@ UCLASS(abstract)
 class ASideScrollingPickup : public AActor
 {
 	GENERATED_BODY()
-	
+
 	/** Pickup bounding sphere */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category ="Components", meta = (AllowPrivateAccess = "true"))
 	USphereComponent* Sphere;
 
 public:
-
 	/** Constructor */
 	ASideScrollingPickup();
 
 protected:
-
 	/** Handles pickup collision */
 	UFUNCTION()
 	void BeginOverlap(AActor* OverlappedActor, AActor* OtherActor);

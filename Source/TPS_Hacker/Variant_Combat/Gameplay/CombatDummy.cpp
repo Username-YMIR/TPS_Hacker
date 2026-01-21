@@ -8,7 +8,7 @@
 
 ACombatDummy::ACombatDummy()
 {
- 	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = true;
 
 	// create the root
 	Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
@@ -31,7 +31,8 @@ ACombatDummy::ACombatDummy()
 	PhysicsConstraint->SetConstrainedComponents(BasePlate, NAME_None, Dummy, NAME_None);
 }
 
-void ACombatDummy::ApplyDamage(float Damage, AActor* DamageCauser, const FVector& DamageLocation, const FVector& DamageImpulse)
+void ACombatDummy::ApplyDamage(float Damage, AActor* DamageCauser, const FVector& DamageLocation,
+                               const FVector& DamageImpulse)
 {
 	// apply impulse to the dummy
 	Dummy->AddImpulseAtLocation(DamageImpulse, DamageLocation);

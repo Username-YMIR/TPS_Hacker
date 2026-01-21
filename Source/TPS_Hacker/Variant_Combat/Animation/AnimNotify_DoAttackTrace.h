@@ -13,17 +13,16 @@ UCLASS()
 class UAnimNotify_DoAttackTrace : public UAnimNotify
 {
 	GENERATED_BODY()
-	
-protected:
 
+protected:
 	/** Source bone for the attack trace */
 	UPROPERTY(EditAnywhere, Category="Attack")
 	FName AttackBoneName;
 
 public:
-
 	/** Perform the Anim Notify */
-	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation, const FAnimNotifyEventReference& EventReference) override;
+	virtual void Notify(USkeletalMeshComponent* MeshComp, UAnimSequenceBase* Animation,
+	                    const FAnimNotifyEventReference& EventReference) override;
 
 	/** Get the notify name */
 	virtual FString GetNotifyName_Implementation() const override;

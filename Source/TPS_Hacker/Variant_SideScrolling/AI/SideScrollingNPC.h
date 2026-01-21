@@ -18,7 +18,6 @@ class ASideScrollingNPC : public ACharacter, public ISideScrollingInteractable
 	GENERATED_BODY()
 
 protected:
-
 	/** Horizontal impulse to apply to the NPC when it's interacted with */
 	UPROPERTY(EditAnywhere, Category="NPC", meta = (ClampMin = 0, ClampMax = 10000, Units="cm/s"))
 	float LaunchImpulse = 500.0f;
@@ -32,7 +31,6 @@ protected:
 	float DeactivationTime = 3.0f;
 
 public:
-
 	/** If true, this NPC is deactivated and will not be interacted with */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="NPC")
 	bool bDeactivated = false;
@@ -40,24 +38,18 @@ public:
 	/** Timer to reactivate the NPC */
 	FTimerHandle DeactivationTimer;
 
-public:
-
 	/** Constructor */
 	ASideScrollingNPC();
-
-public:
 
 	/** Cleanup */
 	virtual void EndPlay(EEndPlayReason::Type EndPlayReason) override;
 
-public:
-
-//	~begin IInteractable interface 
+	//	~begin IInteractable interface 
 
 	/** Performs an interaction triggered by another actor */
 	virtual void Interaction(AActor* Interactor) override;
 
-//	~end IInteractable interface
+	//	~end IInteractable interface
 
 	/** Reactivates the NPC */
 	void ResetDeactivation();

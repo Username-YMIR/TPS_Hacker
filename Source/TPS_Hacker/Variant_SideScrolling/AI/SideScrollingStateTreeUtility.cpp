@@ -18,14 +18,19 @@ EStateTreeRunStatus FStateTreeGetPlayerTask::Tick(FStateTreeExecutionContext& Co
 	// are the NPC and target valid?
 	if (IsValid(InstanceData.TargetPlayer) && IsValid(InstanceData.NPC))
 	{
-		InstanceData.bValidTarget = FVector::Distance(InstanceData.NPC->GetActorLocation(), InstanceData.TargetPlayer->GetActorLocation()) < InstanceData.RangeMax;
+		InstanceData.bValidTarget = FVector::Distance(InstanceData.NPC->GetActorLocation(),
+		                                              InstanceData.TargetPlayer->GetActorLocation()) < InstanceData.
+			RangeMax;
 	}
 
 	return EStateTreeRunStatus::Running;
 }
 
 #if WITH_EDITOR
-FText FStateTreeGetPlayerTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView, const IStateTreeBindingLookup& BindingLookup, EStateTreeNodeFormatting Formatting /*= EStateTreeNodeFormatting::Text*/) const
+FText FStateTreeGetPlayerTask::GetDescription(const FGuid& ID, FStateTreeDataView InstanceDataView,
+                                              const IStateTreeBindingLookup& BindingLookup,
+                                              EStateTreeNodeFormatting Formatting /*= EStateTreeNodeFormatting::Text*/)
+const
 {
 	return FText::FromString("<b>Get Player</b>");
 }

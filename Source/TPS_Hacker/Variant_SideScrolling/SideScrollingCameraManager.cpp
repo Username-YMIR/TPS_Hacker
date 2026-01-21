@@ -54,9 +54,9 @@ void ASideScrollingCameraManager::UpdateViewTarget(FTViewTarget& OutVT, float De
 		{
 			// determine if we need to do a height update
 			bZUpdate = FMath::IsNearlyEqual(CurrentZ, CurrentCameraLocation.Z, 25.0f);
-
-		} else {
-
+		}
+		else
+		{
 			// run a trace below the character to determine if we need to do a height update
 			FHitResult OutHit;
 
@@ -66,32 +66,29 @@ void ASideScrollingCameraManager::UpdateViewTarget(FTViewTarget& OutVT, float De
 			QueryParams.AddIgnoredActor(TargetPawn);
 
 			// only update height if we're not about to hit ground
-			bZUpdate = !GetWorld()->LineTraceSingleByChannel(OutHit, CurrentActorLocation, End, ECC_Visibility, QueryParams);
-
+			bZUpdate = !GetWorld()->LineTraceSingleByChannel(OutHit, CurrentActorLocation, End, ECC_Visibility,
+			                                                 QueryParams);
 		}
 
 		// do we need to do a height update?
 		if (bZUpdate)
 		{
-
 			// set the height goal from the actor location
 			CurrentZ = CurrentActorLocation.Z;
-
-		} else {
-
+		}
+		else
+		{
 			// are we close enough to the target height?
 			if (FMath::IsNearlyEqual(CurrentZ, CurrentActorLocation.Z, 100.0f))
 			{
 				// set the height goal from the actor location
 				CurrentZ = CurrentActorLocation.Z;
-
-			} else {
-
+			}
+			else
+			{
 				// blend the height towards the actor location
 				CurrentZ = FMath::FInterpTo(CurrentZ, CurrentActorLocation.Z, DeltaTime, 2.0f);
-				
 			}
-
 		}
 
 		// clamp the X axis to the min and max camera bounds

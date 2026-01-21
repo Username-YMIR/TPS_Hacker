@@ -21,10 +21,10 @@ class ICombatDamageable
 	GENERATED_BODY()
 
 public:
-
 	/** Handles damage and knockback events */
 	UFUNCTION(BlueprintCallable, Category="Damageable")
-	virtual void ApplyDamage(float Damage, AActor* DamageCauser, const FVector& DamageLocation, const FVector& DamageImpulse) = 0;
+	virtual void ApplyDamage(float Damage, AActor* DamageCauser, const FVector& DamageLocation,
+	                         const FVector& DamageImpulse) = 0;
 
 	/** Handles death events */
 	UFUNCTION(BlueprintCallable, Category="Damageable")
