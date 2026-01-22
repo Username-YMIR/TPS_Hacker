@@ -17,9 +17,11 @@
 #include "Actors/Projectile.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/ObjectPoolComponent.h"
+#include "Components/PostProcessComponent.h"
 #include "Framework/TPS_Hacker_PlayerController.h"
 #include "Interfaces/InteractableInterface.h"
 #include "Interfaces/HackableInterface.h"
+#include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 
 // Sets default values
@@ -55,6 +57,41 @@ ATPS_Hacker_Character::ATPS_Hacker_Character()
 
 	// PoolComponent
 	PoolComp = CreateDefaultSubobject<UObjectPoolComponent>(TEXT("ObjectPool"));
+	
+	
+	// PostProcess Component 생성
+	FocusPostProcess = CreateDefaultSubobject<UPostProcessComponent>(TEXT("FocusPostProcess"));
+	FocusPostProcess->SetupAttachment(GetRootComponent());
+
+	// 기본은 꺼짐(BlendWeight = 0)
+	FocusPostProcess->bUnbound = false;     // 카메라 주변/컴포넌트 위치 기반(일반적)
+	FocusPostProcess->BlendWeight = 0.0f;
+
+	// 포커스 모드 기본 효과값
+	// 추후 에디터에서 튜닝 권장
+	{
+		auto& PPS = FocusPostProcess->Settings;
+
+		// 비네팅(집중 느낌)
+		PPS.bOverride_VignetteIntensity = true;
+		PPS.VignetteIntensity = 0.6f;
+
+		// 채도 낮추기(세상 느려짐 느낌)
+		PPS.bOverride_ColorSaturation = true;
+		PPS.ColorSaturation = FVector4(0.75f, 0.75f, 0.75f, 1.0f);
+
+		// 콘트라스트 살짝
+		PPS.bOverride_ColorContrast = true;
+		PPS.ColorContrast = FVector4(1.05f, 1.05f, 1.05f, 1.0f);
+
+		// 크로마틱 어버레이션 약간(과하면 멀미)
+		PPS.bOverride_SceneFringeIntensity = true;
+		PPS.SceneFringeIntensity = 0.3f;
+
+		// 블룸 조금(선택)
+		PPS.bOverride_BloomIntensity = true;
+		PPS.BloomIntensity = 0.25f;
+	}
 }
 
 
@@ -95,6 +132,21 @@ void ATPS_Hacker_Character::BeginPlay()
 	{
 		HackScanner->Initialize(FollowCamera);
 	}
+	
+	// 포커스모드 효과 확실하게 끄기
+	if (FocusPostProcess)
+	{
+		FocusVFX_CurrentWeight = 0.0f;
+		FocusPostProcess->BlendWeight = 0.0f;
+	}
+}
+
+void ATPS_Hacker_Character::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	//포커스 모드 강제 종료
+	ForceExitFocusMode();
+	
+	Super::EndPlay(EndPlayReason);
 }
 
 
@@ -134,8 +186,10 @@ void ATPS_Hacker_Character::SetupPlayerInputComponent(UInputComponent* PlayerInp
 
 		//Hack, Interact
 		EnhancedInputComponent->BindAction(HackAction, ETriggerEvent::Started, this, &ATPS_Hacker_Character::Do_Hack);
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this,
-		                                   &ATPS_Hacker_Character::Do_Interact);
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ATPS_Hacker_Character::Do_Interact);
+		
+		// FocusMode
+		EnhancedInputComponent->BindAction(FocusModeAction, ETriggerEvent::Started, this, &ATPS_Hacker_Character::ToggleFocusMode);
 	}
 	else
 	{
@@ -202,6 +256,8 @@ void ATPS_Hacker_Character::StartAimTimelineReverse()
 	AimTimeline.Reverse();                   // 1 -> 0
 }
 
+
+
 void ATPS_Hacker_Character::OnAimTimelineUpdate(float Alpha)
 {
 	// Alpha: 커브 결과(0..1). 이 값을 FOV 보간에 사용
@@ -220,7 +276,7 @@ void ATPS_Hacker_Character::OnAimTimelineFinished()
 
 // ==============================================================================
 
-
+#pragma region InputFunctions
 void ATPS_Hacker_Character::Move(const FInputActionValue& Value)
 {
 	// input is a Vector2D
@@ -298,6 +354,7 @@ void ATPS_Hacker_Character::Do_Interact()
 		IInteractableInterface::Execute_OnInteract(Target, this);
 	}
 }
+
 
 // Input
 //  -> Fire()
@@ -440,3 +497,118 @@ void ATPS_Hacker_Character::DoJumpEnd()
 	// signal the character to stop jumping
 	StopJumping();
 }
+
+#pragma endregion
+
+//---------------------------------
+// 포커스 모드
+//---------------------------------
+
+#pragma region FocusMode
+
+void ATPS_Hacker_Character::ToggleFocusMode()
+{
+	UE_LOG(LogTPS, Warning, TEXT("ToggleFocusMode()"));	
+	
+	// 필요하면 여기서 조건 차단:
+	// if (bIsDead || bIsInMenu || bIsHackingView) return;
+
+	if (bIsFocusMode)
+	{
+		ExitFocusMode();
+	}
+	else
+	{
+		EnterFocusMode();
+	}
+}
+
+void ATPS_Hacker_Character::EnterFocusMode()
+{
+	if (bIsFocusMode) return;
+
+	bIsFocusMode = true;
+	
+	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), FocusModeTimeDilation);
+	// VFX ON (부드럽게)
+	StartFocusVFXFade(FocusVFX_OnWeight);
+
+}
+
+void ATPS_Hacker_Character::ExitFocusMode()
+{
+	if (!bIsFocusMode) return;
+
+	bIsFocusMode = false;
+	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), NormalModeTimeDilation);
+	
+	// VFX OFF (부드럽게)
+	StartFocusVFXFade(0.0f);
+
+}
+
+//사망 / 메뉴 / 시점 전환 / 레벨 전환 시 호출 
+void ATPS_Hacker_Character::ForceExitFocusMode()
+{
+	bIsFocusMode = false;
+	UGameplayStatics::SetGlobalTimeDilation(GetWorld(), NormalModeTimeDilation);
+	StopFocusVFXFade();
+}
+
+
+void ATPS_Hacker_Character::StartFocusVFXFade(float TargetWeight)
+{
+	if (!FocusPostProcess) return;
+	
+	UE_LOG(LogTPS, Warning, TEXT("StartFocusVFXFade()"));
+	FocusVFX_TargetWeight = FMath::Clamp(TargetWeight, 0.0f, 1.0f);
+	FocusVFX_CurrentWeight = FocusPostProcess->BlendWeight;
+
+	const float FadeTime = FMath::Max(0.01f, FocusVFX_FadeTime);
+	FocusVFX_FadeSpeedPerSec = FMath::Abs(FocusVFX_TargetWeight - FocusVFX_CurrentWeight) / FadeTime;
+
+	// 기존 페이드 중이면 교체
+	GetWorldTimerManager().ClearTimer(FocusVFXFadeTimer);
+
+	// 타임 딜레이션 영향을 받지 않게 "Real Time"로 돌리고 싶으면 Tick 방식이 더 깔끔함.
+	// 여기서는 단순히 타이머(월드시간)로 구현. 느려진 시간에 따라 페이드도 살짝 느려지는 효과가 생김.
+	GetWorldTimerManager().SetTimer(
+		FocusVFXFadeTimer,
+		this,
+		&ATPS_Hacker_Character::TickFocusVFXFade,
+		0.0f,
+		true
+	);
+}
+
+void ATPS_Hacker_Character::StopFocusVFXFade()
+{
+	GetWorldTimerManager().ClearTimer(FocusVFXFadeTimer);
+}
+
+void ATPS_Hacker_Character::TickFocusVFXFade()
+{
+	if (!FocusPostProcess)
+	{
+		StopFocusVFXFade();
+		return;
+	}
+
+	const float Delta = GetWorld()->GetDeltaSeconds();
+
+	const float NewWeight = FMath::FInterpConstantTo(
+		FocusPostProcess->BlendWeight,
+		FocusVFX_TargetWeight,
+		Delta,
+		FocusVFX_FadeSpeedPerSec
+	);
+
+	FocusPostProcess->BlendWeight = NewWeight;
+
+	if (FMath::IsNearlyEqual(NewWeight, FocusVFX_TargetWeight, 0.001f))
+	{
+		FocusPostProcess->BlendWeight = FocusVFX_TargetWeight;
+		StopFocusVFXFade();
+	}
+}
+#pragma endregion

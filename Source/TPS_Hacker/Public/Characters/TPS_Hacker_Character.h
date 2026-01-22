@@ -13,6 +13,7 @@
 // Interact/Hack 스캐너 컴포넌트를 보유
 //  - E/Q 입력을 해당 타겟에게 인터페이스 호출로 라우팅
 
+class UPostProcessComponent;
 class UInputAction;
 
 UCLASS()
@@ -20,61 +21,79 @@ class TPS_HACKER_API ATPS_Hacker_Character : public ACharacter
 {
 	GENERATED_BODY()
 
+#pragma region Components
+    private:
+    	//Camera
+    	UPROPERTY(VisibleAnywhere, Category = "Camera")
+    	TObjectPtr<class USpringArmComponent> SpringArm = nullptr;
+    
+    	UPROPERTY(VisibleAnywhere, Category = "Camera")
+    	TObjectPtr<class UCameraComponent> FollowCamera = nullptr;
+    	
+    	//FocusVFX
+    	UPROPERTY(VisibleAnywhere, Category="Focus|VFX")
+    	UPostProcessComponent* FocusPostProcess = nullptr;
+	
+		UPROPERTY(EditDefaultsOnly, Category="Focus|VFX")
+		float FocusVFX_OnWeight = 1.0f;
+
+		UPROPERTY(EditDefaultsOnly, Category="Focus|VFX")
+		float FocusVFX_FadeTime  = 0.15f;
+	
+		FTimerHandle FocusVFXFadeTimer;
+
+		float FocusVFX_CurrentWeight = 0.0f;
+		float FocusVFX_TargetWeight = 0.0f;
+		float FocusVFX_FadeSpeedPerSec = 0.0f;
+    
+    	//Components
+    	UPROPERTY(VisibleAnywhere, Category = "Interact")
+    	TObjectPtr<class UInteractScannerComponent> InteractScanner = nullptr;
+    
+    	UPROPERTY(VisibleAnywhere, Category = "Intercat")
+    	TObjectPtr<class UHackScannerComponent> HackScanner = nullptr;
+    	
+    	
+    
+    protected:
+    	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Pool")
+    	TObjectPtr<class UObjectPoolComponent> PoolComp;
+    #pragma endregion
+	
+#pragma region Overrided
+public:
+	// Sets default values for this character's properties
+	ATPS_Hacker_Character();
+	// AActor
+	virtual void Tick(float DeltaSeconds) override;
+	
 protected:
-	/** Jump Input Action */
-	UPROPERTY(EditAnywhere, Category="Input|Movement")
-	UInputAction* JumpAction;
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+#pragma endregion
 
-	/** Move Input Action */
-	UPROPERTY(EditAnywhere, Category="Input|Movement")
-	UInputAction* MoveAction;
-
-	/** Look Input Action */
-	UPROPERTY(EditAnywhere, Category="Input|Movement")
-	UInputAction* LookAction;
-
-	/** Mouse Look Input Action */
-	UPROPERTY(EditAnywhere, Category="Input|Movement")
-	UInputAction* MouseLookAction;
-
-	// 달리기, 걷기 토글
-	UPROPERTY(EditAnywhere, Category="Input|Movement")
-	UInputAction* RunWalkToggleAction;
-
-	// 해킹
-	UPROPERTY(EditAnywhere, Category="Input|Interact")
-	UInputAction* HackAction;
-
-	// 상호작용 (줍기)
-	UPROPERTY(EditAnywhere, Category="Input|Interact")
-	UInputAction* InteractAction;
-
-	// 총 발사
-	UPROPERTY(EditAnywhere, Category="Input|Combat")
-	UInputAction* FireAction;
-
-	// 조준
-	UPROPERTY(EditAnywhere, Category="Input|Combat")
-	UInputAction* AimAction;
-
-	//처형
-	UPROPERTY(EditAnywhere, Category="Input|Combat")
-	UInputAction* TakedownAction;
-
+	
+	
+	
+	
+#pragma region Temp_WeaponComponentProperties
 	//전투
 	UPROPERTY(EditAnywhere, Category="Combat")
 	TSubclassOf<AActor> ProjectileClass;
 
 	UPROPERTY(EditAnywhere, Category="Combat")
 	FName MuzzleSocketName = "Muzzle";
-
+	
 	//콜리전 /추후 총기 컴포넌트로 옮기고 총기 컴포넌트에서 오너로 접근해 가져올 예정
 	// UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Collision")
 	// TEnumAsByte<ECollisionChannel> MyCollisionChannel;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Collision", meta=(AllowPrivateAccess="true"))
 	TEnumAsByte<ECollisionChannel> MyCollisionChannel = ECC_MAX;
+#pragma endregion
 
-
+#pragma region Input
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
 
@@ -87,7 +106,13 @@ protected:
 	void Do_Interact(); // E 키, 근거리 상호작용
 	void Do_Fire(); // 좌클릭, 발사
 	void Do_Takedown(); // F키, 처형
-
+	
+	// 포커스 모드
+	void ToggleFocusMode();
+	void EnterFocusMode();
+	void ExitFocusMode();
+	void ForceExitFocusMode();
+	
 
 public:
 	/** Handles move inputs from either controls or UI interfaces */
@@ -105,41 +130,11 @@ public:
 	/** Handles jump pressed inputs from either controls or UI interfaces */
 	UFUNCTION(BlueprintCallable, Category="Input")
 	virtual void DoJumpEnd();
-
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-public:
-	// Sets default values for this character's properties
-	ATPS_Hacker_Character();
-
+	
 	void SetShoulder(bool bRight);
-
-private:
-	//Camera
-	UPROPERTY(VisibleAnywhere, Category = "Camera")
-	TObjectPtr<class USpringArmComponent> SpringArm;
-
-	UPROPERTY(VisibleAnywhere, Category = "Camera")
-	TObjectPtr<class UCameraComponent> FollowCamera;
-
-	//Components
-	UPROPERTY(VisibleAnywhere, Category = "Interact")
-	TObjectPtr<class UInteractScannerComponent> InteractScanner;
-
-	UPROPERTY(VisibleAnywhere, Category = "Intercat")
-	TObjectPtr<class UHackScannerComponent> HackScanner;
-
-protected:
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Pool")
-	TObjectPtr<class UObjectPoolComponent> PoolComp;
-
-public:
-	// AActor
-	virtual void Tick(float DeltaSeconds) override;
-
+	
+	
+#pragma region Input|Aim
 protected:
 	//----------------------
 	// 조준 관련 (Aim)
@@ -180,11 +175,89 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, Category="Aim|Speed")
 	float AimOutPlayRate = 1.0f; // 뗄 때 느림
-
+	
 private:
 	// Timeline 인스턴스(코드 기반 타임라인)
 	FTimeline AimTimeline;
 
 	// 내부 상태
 	bool bWantsAim = false;
+#pragma endregion
+#pragma endregion
+
+
+
+
+	
+
+
+
+#pragma region FocusMode
+protected:
+	// Focus Mode
+	//포커스 모드 게임0.2배속
+	UPROPERTY(EditDefaultsOnly, Category="Focus")
+	float FocusModeTimeDilation = 0.2f;
+
+	//일반 속도
+	UPROPERTY(EditDefaultsOnly, Category="Focus")
+	float NormalModeTimeDilation = 1.0f;
+
+	UPROPERTY(VisibleAnywhere, Category="Focus")
+	bool bIsFocusMode = false;
+	
+	// VFX Fade
+	void StartFocusVFXFade(float TargetWeight);
+	void StopFocusVFXFade();
+	void TickFocusVFXFade();
+#pragma endregion
+	
+#pragma region InputActions
+protected:
+	/** Jump Input Action */
+	UPROPERTY(EditAnywhere, Category="Input|Movement")
+	UInputAction* JumpAction;
+
+	/** Move Input Action */
+	UPROPERTY(EditAnywhere, Category="Input|Movement")
+	UInputAction* MoveAction;
+
+	/** Look Input Action */
+	UPROPERTY(EditAnywhere, Category="Input|Movement")
+	UInputAction* LookAction;
+
+	/** Mouse Look Input Action */
+	UPROPERTY(EditAnywhere, Category="Input|Movement")
+	UInputAction* MouseLookAction;
+
+	// 달리기, 걷기 토글
+	UPROPERTY(EditAnywhere, Category="Input|Movement")
+	UInputAction* RunWalkToggleAction;
+
+	// 해킹
+	UPROPERTY(EditAnywhere, Category="Input|Interact")
+	UInputAction* HackAction;
+
+	// 상호작용 (줍기)
+	UPROPERTY(EditAnywhere, Category="Input|Interact")
+	UInputAction* InteractAction;
+
+	// 총 발사
+	UPROPERTY(EditAnywhere, Category="Input|Combat")
+	UInputAction* FireAction;
+
+	// 조준
+	UPROPERTY(EditAnywhere, Category="Input|Combat")
+	UInputAction* AimAction;
+
+	//처형
+	UPROPERTY(EditAnywhere, Category="Input|Combat")
+	UInputAction* TakedownAction;
+	
+	//포커스모드
+	UPROPERTY(EditAnywhere, Category="Input|Ability")
+	UInputAction* FocusModeAction;
+#pragma endregion
+
+
 };
