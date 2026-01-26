@@ -16,6 +16,7 @@
 #include "TPS_HackerPlayerController.h"
 #include "Actors/Projectile.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/GunComponent.h"
 #include "Components/ObjectPoolComponent.h"
 #include "Components/PostProcessComponent.h"
 #include "Framework/TPS_Hacker_PlayerController.h"
@@ -50,6 +51,9 @@ ATPS_Hacker_Character::ATPS_Hacker_Character()
 	{
 		DefaultFOV = FollowCamera->FieldOfView;
 	}
+	
+	//GunComponent
+	GunComp = CreateDefaultSubobject<UGunComponent>(TEXT("GunComponent"));
 
 	// --- Scanners
 	InteractScanner = CreateDefaultSubobject<UInteractScannerComponent>(TEXT("InteractScanner"));
@@ -173,16 +177,20 @@ void ATPS_Hacker_Character::SetupPlayerInputComponent(UInputComponent* PlayerInp
 		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this,
 		                                   &ATPS_Hacker_Character::Look);
 
+		
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ATPS_Hacker_Character::Look);
 
 		// Combat
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ATPS_Hacker_Character::Do_Fire);
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &ATPS_Hacker_Character::Do_FireReleased);
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &ATPS_Hacker_Character::AimPressed);
 		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this,
 		                                   &ATPS_Hacker_Character::AimReleased);
 		EnhancedInputComponent->BindAction(TakedownAction, ETriggerEvent::Started, this,
 		                                   &ATPS_Hacker_Character::Do_Takedown);
+		EnhancedInputComponent->BindAction(ToggleWeaponAction, ETriggerEvent::Started, this,
+											&ATPS_Hacker_Character::OnToggleWeapon);
 
 		//Hack, Interact
 		EnhancedInputComponent->BindAction(HackAction, ETriggerEvent::Started, this, &ATPS_Hacker_Character::Do_Hack);
@@ -355,101 +363,16 @@ void ATPS_Hacker_Character::Do_Interact()
 	}
 }
 
-
-// Input
-//  -> Fire()
-//   -> PoolComp.Acquire()
-// 	 -> Projectile.Launch()
-// 	   -> OnHit / LifeExpired
-// 		 -> ReturnToPool()
-// 임시로 캐릭터에 구현. 총기 컴포넌트에 추후 이동
-// void ATPS_Hacker_Character::Do_Fire()
-// {
-// 	UE_LOG(LogTPS, Warning, TEXT("Do_Fire()"));
-// 	
-// 	if (!PoolComp || !ProjectileClass)
-// 		return;
-//
-// 	// FVector TempMuzzleLoc =  GetActorLocation() + (GetActorForwardVector() * 80);
-// 	
-// 	const FVector MuzzleLoc = GetActorLocation();
-// 	const FRotator MuzzleRot = GetActorRotation();
-// 	const FTransform XForm(MuzzleRot, MuzzleLoc);
-//
-// 	AActor* Spawned = PoolComp->Acquire(ProjectileClass, XForm);
-// 	AProjectile* Proj = Cast<AProjectile>(Spawned);
-// 	if (!Proj) return;
-//
-// 	Proj->SetOwner(this);
-// 	Proj->SetOwningPool(PoolComp);
-// 	
-// 	//무시할 오브젝트 타입 추가 로직
-// 	Proj->OwnerCollisionChannel = MyCollisionChannel;
-// 	Proj->ApplyProjectileCollision();
-// 	
-// 	
-// 	const FVector Dir = MuzzleRot.Vector();
-// 	Proj->Launch(Dir);
-// }
-
 void ATPS_Hacker_Character::Do_Fire()
 {
-	if (!PoolComp || !ProjectileClass)
-	{
-		return;
-	}
+	if (GunComp)
+		GunComp->RequestFirePressed();
+}
 
-	// 1) 조준점(화면 중앙) 기준으로 목표 지점(AimPoint) 계산
-	// ATPS_Hacker_PlayerController* PC = Cast<ATPS_Hacker_PlayerController>(GetController());
-	ATPS_HackerPlayerController* PC = Cast<ATPS_HackerPlayerController>(GetController());
-	if (!PC)
-	{
-		return;
-	}
-	UE_LOG(LogTPS, Warning, TEXT("Do_Fire()"));
-
-	constexpr float Range = 100000.f;
-
-	FVector AimPoint;
-	// Deproject/Trace가 실패하더라도 false를 반환하니, 실패 시에는 카메라 forward로 폴백
-	if (!PC->GetAimHitPoint(AimPoint, Range, ECC_Visibility, /*bDrawDebug*/ false))
-	{
-		FVector CamLoc;
-		FRotator CamRot;
-		PC->GetPlayerViewPoint(CamLoc, CamRot);
-		AimPoint = CamLoc + CamRot.Vector() * Range;
-	}
-
-	// 2) 총구 위치(Spawn 위치)
-	//    지금은 GetActorLocation 사용
-	//    (추후 Muzzle 소켓으로 교체)
-	const FVector MuzzleLoc = GetActorLocation();
-
-	// 3) 총구 -> AimPoint 방향으로 발사 방향 계산
-	const FVector Dir = (AimPoint - MuzzleLoc).GetSafeNormal();
-
-	// 4) 발사 방향으로 스폰 회전 구성 (프로젝타일이 스폰 시 방향을 사용한다면 유용)
-	const FRotator SpawnRot = Dir.Rotation();
-	const FTransform XForm(SpawnRot, MuzzleLoc);
-
-	// 5) 풀에서 프로젝타일 획득
-	AActor* Spawned = PoolComp->Acquire(ProjectileClass, XForm);
-	AProjectile* Proj = Cast<AProjectile>(Spawned);
-	if (!Proj)
-	{
-		return;
-	}
-
-	// 6) 소유자/풀 세팅
-	Proj->SetOwner(this);
-	Proj->SetOwningPool(PoolComp);
-
-	// 7) 무시할 오브젝트 타입(채널) 적용
-	Proj->OwnerCollisionChannel = MyCollisionChannel;
-	Proj->ApplyProjectileCollision();
-
-	// 8) 조준점 기준 방향으로 발사
-	Proj->Launch(Dir);
+void ATPS_Hacker_Character::Do_FireReleased()
+{
+	if (GunComp)
+		GunComp->RequestFireReleased();
 }
 
 void ATPS_Hacker_Character::Do_Takedown()
@@ -496,6 +419,21 @@ void ATPS_Hacker_Character::DoJumpEnd()
 {
 	// signal the character to stop jumping
 	StopJumping();
+}
+
+void ATPS_Hacker_Character::OnToggleWeapon(const FInputActionValue& Value)
+{
+	if (!GunComp) return;
+
+	// “T = 장착해제”만 원하면 무장일 때만 해제
+	if (GunComp->IsArmed())
+	{
+		GunComp->RequestUnequip();
+	}
+	else if (!GunComp->IsArmed())
+	{
+		GunComp->RequestEquipPrimary();
+	}
 }
 
 #pragma endregion

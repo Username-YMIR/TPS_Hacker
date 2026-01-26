@@ -13,8 +13,6 @@
 // Interact/Hack 스캐너 컴포넌트를 보유
 //  - E/Q 입력을 해당 타겟에게 인터페이스 호출로 라우팅
 
-class UPostProcessComponent;
-class UInputAction;
 
 UCLASS()
 class TPS_HACKER_API ATPS_Hacker_Character : public ACharacter
@@ -32,7 +30,7 @@ class TPS_HACKER_API ATPS_Hacker_Character : public ACharacter
     	
     	//FocusVFX
     	UPROPERTY(VisibleAnywhere, Category="Focus|VFX")
-    	UPostProcessComponent* FocusPostProcess = nullptr;
+    	class UPostProcessComponent* FocusPostProcess = nullptr;
 	
 		UPROPERTY(EditDefaultsOnly, Category="Focus|VFX")
 		float FocusVFX_OnWeight = 1.0f;
@@ -57,7 +55,10 @@ class TPS_HACKER_API ATPS_Hacker_Character : public ACharacter
     
     protected:
     	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="Pool")
-    	TObjectPtr<class UObjectPoolComponent> PoolComp;
+    	TObjectPtr<class UObjectPoolComponent> PoolComp = nullptr;
+	
+		UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Combat")
+		TObjectPtr<class UGunComponent> GunComp = nullptr;
     #pragma endregion
 	
 #pragma region Overrided
@@ -79,6 +80,16 @@ protected:
 	
 	
 #pragma region Temp_WeaponComponentProperties
+public:
+	// GunComponent가 사용(마이그레이션용)
+	class UObjectPoolComponent* GetPoolComponent() const { return PoolComp; }
+
+	ECollisionChannel GetOwnerCollisionChannel() const { return MyCollisionChannel; }
+
+	// 기존 캐릭터 임시 ProjectileClass fallback
+	TSubclassOf<AActor> GetFallbackProjectileClass() const { return ProjectileClass; }
+
+	
 	//전투
 	UPROPERTY(EditAnywhere, Category="Combat")
 	TSubclassOf<AActor> ProjectileClass;
@@ -105,6 +116,7 @@ protected:
 	void Do_Hack(); // Q 키, 원거리 상호작용(해킹)
 	void Do_Interact(); // E 키, 근거리 상호작용
 	void Do_Fire(); // 좌클릭, 발사
+	void Do_FireReleased(); // 좌클릭 떼기
 	void Do_Takedown(); // F키, 처형
 	
 	// 포커스 모드
@@ -132,6 +144,8 @@ public:
 	virtual void DoJumpEnd();
 	
 	void SetShoulder(bool bRight);
+	
+	void OnToggleWeapon(const FInputActionValue& Value);
 	
 	
 #pragma region Input|Aim
@@ -216,7 +230,7 @@ protected:
 protected:
 	/** Jump Input Action */
 	UPROPERTY(EditAnywhere, Category="Input|Movement")
-	UInputAction* JumpAction;
+	class UInputAction* JumpAction;
 
 	/** Move Input Action */
 	UPROPERTY(EditAnywhere, Category="Input|Movement")
@@ -234,6 +248,10 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Input|Movement")
 	UInputAction* RunWalkToggleAction;
 
+	//앉기 서기 토글
+	UPROPERTY(EditAnywhere, Category="Input|Movement")
+	UInputAction* ToggleCrouchAction;
+	
 	// 해킹
 	UPROPERTY(EditAnywhere, Category="Input|Interact")
 	UInputAction* HackAction;
@@ -241,7 +259,10 @@ protected:
 	// 상호작용 (줍기)
 	UPROPERTY(EditAnywhere, Category="Input|Interact")
 	UInputAction* InteractAction;
-
+	
+	UPROPERTY(EditAnywhere, Category="Input|Combat")
+	UInputAction* ToggleWeaponAction;
+	
 	// 총 발사
 	UPROPERTY(EditAnywhere, Category="Input|Combat")
 	UInputAction* FireAction;
