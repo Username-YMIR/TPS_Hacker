@@ -7,6 +7,7 @@
 #include "InputMappingContext.h"
 #include "Blueprint/UserWidget.h"
 #include "TPS_Hacker.h"
+#include "DrawDebugHelpers.h"
 #include "Widgets/Input/SVirtualJoystick.h"
 
 void ATPS_HackerPlayerController::BeginPlay()
@@ -30,7 +31,7 @@ void ATPS_HackerPlayerController::BeginPlay()
 		}
 	}
 
-	//HUD ¶ç¿ì±â
+	//HUD ë„ìš°ê¸°
 	if (HUDWidgetClass)
 	{
 		HUDWidget = CreateWidget<UUserWidget>(this, HUDWidgetClass);
@@ -40,7 +41,7 @@ void ATPS_HackerPlayerController::BeginPlay()
 			UE_LOG(LogTPS, Log, TEXT("HUD Widget created."));
 		}
 	}
-	// ±âº» ÀÎÇ²¸ğµå & Ä¿¼­
+	// ê¸°ë³¸ ì¸í’‹ëª¨ë“œ & ì»¤ì„œ
 	bShowMouseCursor = false;
 	FInputModeGameOnly Mode;
 	SetInputMode(Mode);
@@ -75,50 +76,53 @@ void ATPS_HackerPlayerController::SetupInputComponent()
 }
 
 
-// ÆÄ¶ó¹ÌÅÍ º¯¼ö
-// FVector& OutHitPoint,              // [out] Á¶ÁØÁ¡ÀÌ °¡¸®Å°´Â ¿ùµå ÁöÁ¡(È÷Æ® ½Ã ImpactPoint, ¹ÌÈ÷Æ® ½Ã End)
-// float Range,                       // ¶óÀÎÆ®·¹ÀÌ½º ÃÖ´ë °Å¸®
-// ECollisionChannel TraceChannel,     // Æ®·¹ÀÌ½º¿¡ »ç¿ëÇÒ Ã¤³Î(¿¹: ECC_Visibility)
-// bool bDrawDebug                    // µğ¹ö±× ¶óÀÎ/½ºÇÇ¾î Ç¥½Ã ¿©ºÎ
+// íŒŒë¼ë¯¸í„° ë³€ìˆ˜
+// FVector& OutHitPoint,              // [out] ì¡°ì¤€ì ì´ ê°€ë¦¬í‚¤ëŠ” ì›”ë“œ ì§€ì (íˆíŠ¸ ì‹œ ImpactPoint, ë¯¸íˆíŠ¸ ì‹œ End)
+// float Range,                       // ë¼ì¸íŠ¸ë ˆì´ìŠ¤ ìµœëŒ€ ê±°ë¦¬
+// ECollisionChannel TraceChannel,     // íŠ¸ë ˆì´ìŠ¤ì— ì‚¬ìš©í•  ì±„ë„(ì˜ˆ: ECC_Visibility)
+// bool bDrawDebug                    // ë””ë²„ê·¸ ë¼ì¸/ìŠ¤í”¼ì–´ í‘œì‹œ ì—¬ë¶€
 bool ATPS_HackerPlayerController::GetAimHitPoint(FVector& OutHitPoint, float Range, ECollisionChannel TraceChannel,
                                                  bool bDrawDebug) const
 {
-	UE_LOG(LogTPS, Warning, TEXT("ATPS_Hacker_PlayerController::GetAimHitPoint()"));
-
-	// 1) ÇöÀç ºäÆ÷Æ®(È­¸é) Å©±â È¹µæ
-	int32 SizeX = 0, SizeY = 0;
-	GetViewportSize(SizeX, SizeY);
-
-	// 2) È­¸é Áß¾Ó ÁÂÇ¥ °è»ê (Á¶ÁØÁ¡ À§Ä¡)
-	const float ScreenX = SizeX * 0.5f;
-	const float ScreenY = SizeY * 0.5f;
-
-	// 3) È­¸é Áß¾Ó ÁÂÇ¥¸¦ ¿ùµå °ø°£ÀÇ ·¹ÀÌ·Î º¯È¯
-	//    RayOrigin: ·¹ÀÌ ½ÃÀÛÁ¡(º¸Åë Ä«¸Ş¶ó ±ÙÃ³)
-	//    RayDir: ·¹ÀÌ ¹æÇâ(Á¤±ÔÈ­µÈ ´ÜÀ§ º¤ÅÍ)
-	FVector RayOrigin, RayDir;
-	if (!DeprojectScreenPositionToWorld(ScreenX, ScreenY, RayOrigin, RayDir))
+	if (!GetWorld() || Range <= 0.0f)
 	{
-		// Deproject ½ÇÆĞ(µå¹® ÄÉÀÌ½º: ºäÆ÷Æ®/·ÎÄÃÇÃ·¹ÀÌ¾î ¹®Á¦ µî)
 		return false;
 	}
 
-	// 4) ·¹ÀÌ ½ÃÀÛ/³¡Á¡ ±¸¼º
+	// 1) í˜„ì¬ ë·°í¬íŠ¸(í™”ë©´) í¬ê¸° íšë“
+	int32 SizeX = 0, SizeY = 0;
+	GetViewportSize(SizeX, SizeY);
+
+	// 2) í™”ë©´ ì¤‘ì•™ ì¢Œí‘œ ê³„ì‚° (ì¡°ì¤€ì  ìœ„ì¹˜)
+	const float ScreenX = SizeX * 0.5f;
+	const float ScreenY = SizeY * 0.5f;
+
+	// 3) í™”ë©´ ì¤‘ì•™ ì¢Œí‘œë¥¼ ì›”ë“œ ê³µê°„ì˜ ë ˆì´ë¡œ ë³€í™˜
+	//    RayOrigin: ë ˆì´ ì‹œì‘ì (ë³´í†µ ì¹´ë©”ë¼ ê·¼ì²˜)
+	//    RayDir: ë ˆì´ ë°©í–¥(ì •ê·œí™”ëœ ë‹¨ìœ„ ë²¡í„°)
+	FVector RayOrigin, RayDir;
+	if (!DeprojectScreenPositionToWorld(ScreenX, ScreenY, RayOrigin, RayDir))
+	{
+		// Deproject ì‹¤íŒ¨(ë“œë¬¸ ì¼€ì´ìŠ¤: ë·°í¬íŠ¸/ë¡œì»¬í”Œë ˆì´ì–´ ë¬¸ì œ ë“±)
+		return false;
+	}
+
+	// 4) ë ˆì´ ì‹œì‘/ëì  êµ¬ì„±
 	const FVector Start = RayOrigin;
 	const FVector End = RayOrigin + RayDir * Range;
 
-	// 5) Æ®·¹ÀÌ½º ÆÄ¶ó¹ÌÅÍ ¼³Á¤
-	// - SCENE_QUERY_STAT: ÇÁ·ÎÆÄÀÏ¸µ/µğ¹ö±ë¿ë ÅÂ±×
-	// - µÎ ¹øÂ° ÀÎÀÚ(false): º¹Àâ Ãæµ¹(Complex) ¿©ºÎ¸¦ ¿©±â¼­ °­Á¦ÇÏÁö ¾ÊÀ½
+	// 5) íŠ¸ë ˆì´ìŠ¤ íŒŒë¼ë¯¸í„° ì„¤ì •
+	// - SCENE_QUERY_STAT: í”„ë¡œíŒŒì¼ë§/ë””ë²„ê¹…ìš© íƒœê·¸
+	// - ë‘ ë²ˆì§¸ ì¸ì(false): ë³µì¡ ì¶©ëŒ(Complex) ì—¬ë¶€ë¥¼ ì—¬ê¸°ì„œ ê°•ì œí•˜ì§€ ì•ŠìŒ
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(AimTrace), false);
 
-	// ÀÚ±â ÀÚ½Å(ÇÃ·¹ÀÌ¾î Æù)À» ¹«½ÃÇØ¼­ Ä«¸Ş¶ó/Ä¸½¶/¸Ş½¬¿¡ ¸Â´Â »óÈ² ¹æÁö
+	// ìê¸° ìì‹ (í”Œë ˆì´ì–´ í°)ì„ ë¬´ì‹œí•´ì„œ ì¹´ë©”ë¼/ìº¡ìŠ/ë©”ì‰¬ì— ë§ëŠ” ìƒí™© ë°©ì§€
 	if (APawn* P = GetPawn())
 	{
 		Params.AddIgnoredActor(P);
 	}
 
-	// 6) ¶óÀÎÆ®·¹ÀÌ½º ½ÇÇà
+	// 6) ë¼ì¸íŠ¸ë ˆì´ìŠ¤ ì‹¤í–‰
 	FHitResult Hit;
 	const bool bHit = GetWorld()->LineTraceSingleByChannel(
 		Hit,
@@ -128,18 +132,18 @@ bool ATPS_HackerPlayerController::GetAimHitPoint(FVector& OutHitPoint, float Ran
 		Params
 	);
 
-	// 7) °á°ú ¸ñÇ¥Á¡ »êÃâ
-	// - È÷Æ®: ½ÇÁ¦ Ãæµ¹ ÁöÁ¡(ImpactPoint)
-	// - ¹ÌÈ÷Æ®: ÃÖ´ë »ç°Å¸® ³¡Á¡(End)
+	// 7) ê²°ê³¼ ëª©í‘œì  ì‚°ì¶œ
+	// - íˆíŠ¸: ì‹¤ì œ ì¶©ëŒ ì§€ì (ImpactPoint)
+	// - ë¯¸íˆíŠ¸: ìµœëŒ€ ì‚¬ê±°ë¦¬ ëì (End)
 	OutHitPoint = bHit ? Hit.ImpactPoint : End;
 
-	// 8) µğ¹ö±× ½Ã°¢È­(¿É¼Ç)
+	// 8) ë””ë²„ê·¸ ì‹œê°í™”(ì˜µì…˜)
 	if (bDrawDebug)
 	{
-		// ¶óÀÎ: ½ÃÀÛÁ¡ -> ¸ñÇ¥Á¡(È÷Æ®¸é ³ì»ö, ¹ÌÈ÷Æ®¸é »¡°£»ö)
+		// ë¼ì¸: ì‹œì‘ì  -> ëª©í‘œì (íˆíŠ¸ë©´ ë…¹ìƒ‰, ë¯¸íˆíŠ¸ë©´ ë¹¨ê°„ìƒ‰)
 		DrawDebugLine(GetWorld(), Start, OutHitPoint, bHit ? FColor::Green : FColor::Red, false, 0.05f, 0, 1.0f);
 
-		// È÷Æ® ÁöÁ¡Àº ÀÛÀº ±¸·Î Ç¥½Ã
+		// íˆíŠ¸ ì§€ì ì€ ì‘ì€ êµ¬ë¡œ í‘œì‹œ
 		if (bHit)
 		{
 			DrawDebugSphere(GetWorld(), OutHitPoint, 6.f, 8, FColor::Green, false, 0.05f);
@@ -147,7 +151,7 @@ bool ATPS_HackerPlayerController::GetAimHitPoint(FVector& OutHitPoint, float Ran
 	}
 
 
-	// ÇÔ¼ö ÀÚÃ¼ÀÇ ¼º°ø/½ÇÆĞ´Â "Deproject ¼º°ø ¿©ºÎ"·Î¸¸ ÆÇ´ÜÇÑ´Ù.
-	// (Trace°¡ ¹ÌÈ÷Æ®¿©µµ OutHitPoint´Â End·Î À¯È¿ÇÑ °ªÀÌ µÈ´Ù)
+	// í•¨ìˆ˜ ìì²´ì˜ ì„±ê³µ/ì‹¤íŒ¨ëŠ” "Deproject ì„±ê³µ ì—¬ë¶€"ë¡œë§Œ íŒë‹¨í•œë‹¤.
+	// (Traceê°€ ë¯¸íˆíŠ¸ì—¬ë„ OutHitPointëŠ” Endë¡œ ìœ íš¨í•œ ê°’ì´ ëœë‹¤)
 	return true;
 }
