@@ -10,6 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "TPSGameplayTags.h"
 #include "TPS_Hacker.h"
 
 ATPS_HackerCharacter::ATPS_HackerCharacter()
@@ -48,6 +49,9 @@ ATPS_HackerCharacter::ATPS_HackerCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+	
+	// FGameplayTag StateTag=TAG_CharacterState_Idle;
+	
 }
 
 void ATPS_HackerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)

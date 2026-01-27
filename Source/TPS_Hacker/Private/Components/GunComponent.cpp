@@ -84,6 +84,12 @@ void UGunComponent::RequestUnequip()
 	// 4) 무기 데이터/상태 정리
 	CurrentWeaponData = nullptr;
 	EquipState = EEquipState::Unarmed;
+	
+	if (ATPS_Hacker_Character* OwnerChar = GetOwnerCharacter())
+	{
+		OwnerChar->NotifyWeaponArmed(false);
+	}
+
 }
 
 bool UGunComponent::TryEquip()
@@ -96,6 +102,9 @@ bool UGunComponent::TryEquip()
 
 	CurrentWeaponData = PrimaryWeaponData;
 	EquipState = EEquipState::Armed;
+	// 무장 태그 통지
+	OwnerChar->NotifyWeaponArmed(true);
+
 
 	// 무기 메시 적용
 	WeaponMeshComp->SetSkeletalMesh(CurrentWeaponData->WeaponMesh);
@@ -139,6 +148,11 @@ void UGunComponent::RequestFirePressed()
 	}
 
 	// SemiAuto/FullAuto 분기 (DataAsset 기반)
+	if (ATPS_Hacker_Character* OwnerChar = GetOwnerCharacter())
+	{
+		OwnerChar->NotifyFirePressed();
+	}
+
 	if (!CurrentWeaponData)
 		return;
 
@@ -156,6 +170,10 @@ void UGunComponent::RequestFireReleased()
 {
 	bWantsToFire = false;
 	StopAutoFire();
+	if (ATPS_Hacker_Character* OwnerChar = GetOwnerCharacter())
+	{
+		OwnerChar->NotifyFireReleased();
+	}
 }
 
 bool UGunComponent::CanFire() const
@@ -320,7 +338,12 @@ bool UGunComponent::CanReload() const
 void UGunComponent::BeginReload()
 {
 	bIsReloading = true;
+	if (ATPS_Hacker_Character* OwnerChar = GetOwnerCharacter())
+	{
+		OwnerChar->NotifyReloadStarted();
+	}
 	StopAutoFire();
+	
 
 	// 지금은 “타이머로 즉시 장전 완료” 형태로 최소 구현
 	// 나중에 ReloadMontage 종료 타이밍에서 FinishReload 호출로 교체
@@ -348,6 +371,10 @@ void UGunComponent::FinishReload()
 	ReserveAmmo -= Load;
 
 	bIsReloading = false;
+	if (ATPS_Hacker_Character* OwnerChar = GetOwnerCharacter())
+	{
+		OwnerChar->NotifyReloadFinished();
+	}
 
 	// 자동화: 연사키를 계속 누른 상태면 재발사
 	if (bWantsToFire && CurrentWeaponData->FireMode == EWeaponFireMode::FullAuto)

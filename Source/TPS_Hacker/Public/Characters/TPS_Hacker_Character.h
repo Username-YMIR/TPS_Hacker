@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayTagContainer.h"
 #include "GameFramework/Character.h"
 #include "InputActionValue.h"
 #include "Components/TimelineComponent.h"
@@ -13,6 +14,8 @@
 // Interact/Hack 스캐너 컴포넌트를 보유
 //  - E/Q 입력을 해당 타겟에게 인터페이스 호출로 라우팅
 
+
+class UTPS_TagRelationshipMap;
 
 UCLASS()
 class TPS_HACKER_API ATPS_Hacker_Character : public ACharacter
@@ -67,6 +70,8 @@ public:
 	ATPS_Hacker_Character();
 	// AActor
 	virtual void Tick(float DeltaSeconds) override;
+	
+	inline bool IsWantsAim() const { return bWantsAim; }
 	
 protected:
 	// Called when the game starts or when spawned
@@ -280,5 +285,38 @@ protected:
 	UInputAction* FocusModeAction;
 #pragma endregion
 
+#pragma region GameplayTags
+	UPROPERTY(VisibleAnywhere, Category="Tags")
+	FGameplayTagContainer ActiveStateTags;
 
+	UPROPERTY(VisibleAnywhere, Category="Tags")
+	FGameplayTagContainer BlockTags;
+
+	UPROPERTY(EditDefaultsOnly, Category="Tags")
+	TObjectPtr<UTPS_TagRelationshipMap> RelationshipMap;
+	
+	// 상태 강제 종료(=Cancel)에서 실제 로직도 끊어줘야 한다.
+	void CancelStateTag(const FGameplayTag& Tag);
+	void RebuildBlocksAndApplyCancels();
+	
+	// =========================
+	// Gameplay Tags - public API (GunComponent -> Character notify)
+	// =========================
+public:
+	// 상태/블락 조회
+	bool HasStateTag(const FGameplayTag& StateTag) const;
+	bool IsBlockedByTag(const FGameplayTag& BlockTag) const;
+
+	// 상태 변경(내부에서 Rebuild까지 처리)
+	void AddStateTag(const FGameplayTag& StateTag);
+	void RemoveStateTag(const FGameplayTag& StateTag);
+
+	// GunComponent가 호출하는 통지 함수들
+	void NotifyWeaponArmed(bool bArmed);
+	void NotifyFirePressed();     // 실제 발사 시작(조건 통과 후) 시점
+	void NotifyFireReleased();    // 발사 종료(트리거 뗌/강제 종료) 시점
+	void NotifyReloadStarted();
+	void NotifyReloadFinished();
+
+#pragma endregion
 };

@@ -1,0 +1,27 @@
+// Fill out your copyright notice in the Description page of Project Settings.
+
+#pragma once
+#include "NativeGameplayTags.h"
+
+namespace TPSGameplayTags
+{
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Movement_Grounded);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Movement_InAir);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Movement_Crouch);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Movement_Sprint);
+	
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Weapon_Unarmed);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Weapon_Armed);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Weapon_Type_Pistol);
+	
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Combat_ADS);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Combat_Firing);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Action_Reloading);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Action_Equipping);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Action_Unequipping);
+
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Block_Combat_Fire);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Block_Combat_ADS);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Block_Combat_Reload);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Block_Combat_Equip);
+}

@@ -12,6 +12,7 @@
 
 //interfaces 헤더
 #include "EnhancedInputComponent.h"
+#include "TPSGameplayTags.h"
 #include "TPS_Hacker.h"
 #include "TPS_HackerPlayerController.h"
 #include "Actors/Projectile.h"
@@ -19,6 +20,7 @@
 #include "Components/GunComponent.h"
 #include "Components/ObjectPoolComponent.h"
 #include "Components/PostProcessComponent.h"
+#include "Data/TPS_TagRelationshipMap.h"
 #include "Framework/TPS_Hacker_PlayerController.h"
 #include "Interfaces/InteractableInterface.h"
 #include "Interfaces/HackableInterface.h"
@@ -234,6 +236,8 @@ void ATPS_Hacker_Character::AimPressed()
 {
 	bWantsAim = true;
 	StartAimTimelineForward();
+	AddStateTag(TPSGameplayTags::Character_State_Combat_ADS);
+
 }
 
 void ATPS_Hacker_Character::StartAimTimelineForward()
@@ -251,6 +255,8 @@ void ATPS_Hacker_Character::AimReleased()
 {
 	bWantsAim = false;
 	StartAimTimelineReverse();
+	RemoveStateTag(TPSGameplayTags::Character_State_Combat_ADS);
+
 }
 
 void ATPS_Hacker_Character::StartAimTimelineReverse()
@@ -549,4 +555,194 @@ void ATPS_Hacker_Character::TickFocusVFXFade()
 		StopFocusVFXFade();
 	}
 }
+
+
+#pragma endregion
+
+
+
+#pragma region GameplayTags
+// ============================================================================
+// Gameplay Tags Rule Application
+// - RelationshipMap(Evaluate)로 Block/Cancel을 계산
+// - Cancel은 "상태 태그 제거" + "실제 로직 종료"까지 여기서 수행
+// ============================================================================
+
+void ATPS_Hacker_Character::CancelStateTag(const FGameplayTag& Tag)
+{
+	using namespace TPSGameplayTags;
+
+	// --------------------------------------------------------------------
+	// Cancel은 "태그만 제거"하면 끝이 아니라
+	// 해당 상태가 켜져있을 때 시작했던 실제 로직도 같이 종료해야 한다.
+	// --------------------------------------------------------------------
+
+	// 1) 발사 강제 종료
+	if (Tag == Character_State_Combat_Firing)
+	{
+		// 현재 캐릭터 입력 구현상 발사 종료는 GunComp로 전달하는 방식
+		if (GunComp)
+		{
+			GunComp->RequestFireReleased();
+		}
+	}
+
+	// 2) 조준(ADS) 강제 종료
+	else if (Tag == Character_State_Combat_ADS)
+	{
+		// 조준 해제는 캐릭터 쪽 타임라인/카메라 로직이 있으므로
+		// AimReleased()로 종료 처리(타임라인 Reverse 등)
+		// - bWantsAim 플래그도 여기서 false로 정리됨
+		AimReleased();
+	}
+
+	// 3) 재장전 강제 종료
+	else if (Tag == Character_State_Action_Reloading)
+	{
+		// GunComp에 "재장전 취소" API가 아직 코드에서 확인되지 않음.
+		// (추후 RequestReloadCancel() 같은 함수가 생기면 여기서 호출)
+		// 지금은 태그만 내려서 상태 머신이 정리되도록 한다.
+	}
+
+	// 4) 장착/해제 강제 종료
+	else if (Tag == Character_State_Action_Equipping || Tag == Character_State_Action_Unequipping)
+	{
+		// 마찬가지로 "장착 취소" 전용 API가 현재 코드에서 확인되지 않음.
+		// (추후 CancelEquip / CancelUnequip 같은 함수가 생기면 여기서 호출)
+	}
+
+	// 마지막으로 상태 태그 제거
+	ActiveStateTags.RemoveTag(Tag);
+}
+
+void ATPS_Hacker_Character::RebuildBlocksAndApplyCancels()
+{
+	// --------------------------------------------------------------
+	// RelationshipMap 규칙표를 기반으로
+	// 1) BlockTags 계산
+	// 2) CancelTags 계산
+	// 3) CancelTags에 해당하는 상태 강제 종료 + 태그 제거
+	// 4) 최종 BlockTags 재계산(상태가 바뀌었으니까)
+	// --------------------------------------------------------------
+	BlockTags.Reset();
+
+	if (!RelationshipMap)
+	{
+		return;
+	}
+
+	FGameplayTagContainer CancelTags;
+	RelationshipMap->Evaluate(ActiveStateTags, BlockTags, CancelTags);
+
+	// Cancel 목록을 배열로 뽑아서 순회
+	TArray<FGameplayTag> CancelArray;
+	CancelTags.GetGameplayTagArray(CancelArray);
+
+	bool bAnyCancelled = false;
+
+	for (const FGameplayTag& CancelTag : CancelArray)
+	{
+		// 실제로 켜져있는 상태만 강제 종료
+		if (ActiveStateTags.HasTag(CancelTag))
+		{
+			CancelStateTag(CancelTag);
+			bAnyCancelled = true;
+		}
+	}
+
+	// Cancel로 ActiveStateTags가 바뀌었으면 Block도 다시 계산해서 최종값을 맞춘다.
+	if (bAnyCancelled)
+	{
+		FGameplayTagContainer DummyCancel;
+		RelationshipMap->Evaluate(ActiveStateTags, BlockTags, DummyCancel);
+	}
+}
+
+bool ATPS_Hacker_Character::HasStateTag(const FGameplayTag& StateTag) const
+{
+	return ActiveStateTags.HasTag(StateTag);
+}
+
+bool ATPS_Hacker_Character::IsBlockedByTag(const FGameplayTag& BlockTag) const
+{
+	return BlockTags.HasTag(BlockTag);
+}
+
+void ATPS_Hacker_Character::AddStateTag(const FGameplayTag& StateTag)
+{
+	if (!ActiveStateTags.HasTag(StateTag))
+	{
+		ActiveStateTags.AddTag(StateTag);
+		RebuildBlocksAndApplyCancels();
+	}
+}
+
+void ATPS_Hacker_Character::RemoveStateTag(const FGameplayTag& StateTag)
+{
+	if (ActiveStateTags.HasTag(StateTag))
+	{
+		ActiveStateTags.RemoveTag(StateTag);
+		RebuildBlocksAndApplyCancels();
+	}
+}
+
+void ATPS_Hacker_Character::NotifyWeaponArmed(bool bArmed)
+{
+	using namespace TPSGameplayTags;
+
+	// Armed/Unarmed는 배타적이므로 교체
+	ActiveStateTags.RemoveTag(Character_State_Weapon_Armed);
+	ActiveStateTags.RemoveTag(Character_State_Weapon_Unarmed);
+
+	ActiveStateTags.AddTag(bArmed ? Character_State_Weapon_Armed : Character_State_Weapon_Unarmed);
+
+	RebuildBlocksAndApplyCancels();
+}
+
+void ATPS_Hacker_Character::NotifyFirePressed()
+{
+	using namespace TPSGameplayTags;
+
+	// 룰: Unarmed에서도 Fire 입력은 허용(장착 시도로 연결됨)
+	// 실제 발사로 진입한 시점에만 Firing을 올려야 한다.
+	if (!ActiveStateTags.HasTag(Character_State_Combat_Firing))
+	{
+		ActiveStateTags.AddTag(Character_State_Combat_Firing);
+		RebuildBlocksAndApplyCancels();
+	}
+}
+
+void ATPS_Hacker_Character::NotifyFireReleased()
+{
+	using namespace TPSGameplayTags;
+
+	if (ActiveStateTags.HasTag(Character_State_Combat_Firing))
+	{
+		ActiveStateTags.RemoveTag(Character_State_Combat_Firing);
+		RebuildBlocksAndApplyCancels();
+	}
+}
+
+void ATPS_Hacker_Character::NotifyReloadStarted()
+{
+	using namespace TPSGameplayTags;
+
+	if (!ActiveStateTags.HasTag(Character_State_Action_Reloading))
+	{
+		ActiveStateTags.AddTag(Character_State_Action_Reloading);
+		RebuildBlocksAndApplyCancels();
+	}
+}
+
+void ATPS_Hacker_Character::NotifyReloadFinished()
+{
+	using namespace TPSGameplayTags;
+
+	if (ActiveStateTags.HasTag(Character_State_Action_Reloading))
+	{
+		ActiveStateTags.RemoveTag(Character_State_Action_Reloading);
+		RebuildBlocksAndApplyCancels();
+	}
+}
+
 #pragma endregion
