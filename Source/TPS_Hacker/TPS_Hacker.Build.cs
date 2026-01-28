@@ -21,9 +21,10 @@ public class TPS_Hacker : ModuleRules
 			"UMG",
 			"Slate",
 			"GameplayTags"
+			
 		});
 
-		PrivateDependencyModuleNames.AddRange(new string[] { });
+		PrivateDependencyModuleNames.AddRange(new string[] { "AnimGraphRuntime" });
 
 		PublicIncludePaths.AddRange(new[]
 		{

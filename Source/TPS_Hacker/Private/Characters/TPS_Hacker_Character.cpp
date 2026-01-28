@@ -22,6 +22,7 @@
 #include "Components/PostProcessComponent.h"
 #include "Data/TPS_TagRelationshipMap.h"
 #include "Framework/TPS_Hacker_PlayerController.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "Interfaces/InteractableInterface.h"
 #include "Interfaces/HackableInterface.h"
 #include "Kismet/GameplayStatics.h"
@@ -171,35 +172,35 @@ void ATPS_Hacker_Character::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		// Jumping
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+		EnhancedInputComponent->BindAction(IA_Jump, ETriggerEvent::Started, this, &ACharacter::Jump);
+		EnhancedInputComponent->BindAction(IA_Jump, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
 
 		// Moving
-		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ATPS_Hacker_Character::Move);
-		EnhancedInputComponent->BindAction(MouseLookAction, ETriggerEvent::Triggered, this,
+		EnhancedInputComponent->BindAction(IA_Move, ETriggerEvent::Triggered, this, &ATPS_Hacker_Character::Move);
+		EnhancedInputComponent->BindAction(IA_MouseLook, ETriggerEvent::Triggered, this,
 		                                   &ATPS_Hacker_Character::Look);
-
+		// EnhancedInputComponent->BindAction(ToggleCrouchAction, ETriggerEvent::Started, this, &ATPS_Hacker_Character::)
 		
 		// Looking
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ATPS_Hacker_Character::Look);
+		EnhancedInputComponent->BindAction(IA_Look, ETriggerEvent::Triggered, this, &ATPS_Hacker_Character::Look);
 
 		// Combat
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Started, this, &ATPS_Hacker_Character::Do_Fire);
-		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &ATPS_Hacker_Character::Do_FireReleased);
-		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Started, this, &ATPS_Hacker_Character::AimPressed);
-		EnhancedInputComponent->BindAction(AimAction, ETriggerEvent::Completed, this,
-		                                   &ATPS_Hacker_Character::AimReleased);
-		EnhancedInputComponent->BindAction(TakedownAction, ETriggerEvent::Started, this,
-		                                   &ATPS_Hacker_Character::Do_Takedown);
-		EnhancedInputComponent->BindAction(ToggleWeaponAction, ETriggerEvent::Started, this,
-											&ATPS_Hacker_Character::OnToggleWeapon);
+		EnhancedInputComponent->BindAction(IA_Fire, ETriggerEvent::Started, this, &ATPS_Hacker_Character::Input_FirePressed);
+		EnhancedInputComponent->BindAction(IA_Fire, ETriggerEvent::Completed, this, &ATPS_Hacker_Character::Input_FireReleased);
+		EnhancedInputComponent->BindAction(IA_Aim, ETriggerEvent::Started, this, &ATPS_Hacker_Character::Input_AimPressed);
+		EnhancedInputComponent->BindAction(IA_Aim, ETriggerEvent::Completed, this,
+		                                   &ATPS_Hacker_Character::Input_AimReleased);
+		EnhancedInputComponent->BindAction(IA_Toggle_WeaponEquip, ETriggerEvent::Started, this,
+											&ATPS_Hacker_Character::Input_ToggleWeapon);
+		EnhancedInputComponent->BindAction(IA_Takedown, ETriggerEvent::Started, this,
+		                                   &ATPS_Hacker_Character::Input_Takedown);
 
 		//Hack, Interact
-		EnhancedInputComponent->BindAction(HackAction, ETriggerEvent::Started, this, &ATPS_Hacker_Character::Do_Hack);
-		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ATPS_Hacker_Character::Do_Interact);
+		EnhancedInputComponent->BindAction(IA_Hack, ETriggerEvent::Started, this, &ATPS_Hacker_Character::Do_Hack);
+		EnhancedInputComponent->BindAction(IA_Interact, ETriggerEvent::Started, this, &ATPS_Hacker_Character::Do_Interact);
 		
 		// FocusMode
-		EnhancedInputComponent->BindAction(FocusModeAction, ETriggerEvent::Started, this, &ATPS_Hacker_Character::ToggleFocusMode);
+		EnhancedInputComponent->BindAction(IA_FocusMode, ETriggerEvent::Started, this, &ATPS_Hacker_Character::ToggleFocusMode);
 	}
 	else
 	{
@@ -384,6 +385,14 @@ void ATPS_Hacker_Character::Do_FireReleased()
 void ATPS_Hacker_Character::Do_Takedown()
 {
 }
+
+// // void ATPS_Hacker_Character::Input_ToggleCrouch()
+// {
+// 	// 룰 시스템이 처리하도록 "의도"만 전달
+// 	RequestAction(TAG_Action_Crouch_Toggle);
+// }
+
+
 
 void ATPS_Hacker_Character::DoMove(float Right, float Forward)
 {
@@ -599,7 +608,6 @@ void ATPS_Hacker_Character::CancelStateTag(const FGameplayTag& Tag)
 	// 3) 재장전 강제 종료
 	else if (Tag == Character_State_Action_Reloading)
 	{
-		// GunComp에 "재장전 취소" API가 아직 코드에서 확인되지 않음.
 		// (추후 RequestReloadCancel() 같은 함수가 생기면 여기서 호출)
 		// 지금은 태그만 내려서 상태 머신이 정리되도록 한다.
 	}
@@ -607,7 +615,6 @@ void ATPS_Hacker_Character::CancelStateTag(const FGameplayTag& Tag)
 	// 4) 장착/해제 강제 종료
 	else if (Tag == Character_State_Action_Equipping || Tag == Character_State_Action_Unequipping)
 	{
-		// 마찬가지로 "장착 취소" 전용 API가 현재 코드에서 확인되지 않음.
 		// (추후 CancelEquip / CancelUnequip 같은 함수가 생기면 여기서 호출)
 	}
 
@@ -686,6 +693,7 @@ void ATPS_Hacker_Character::RemoveStateTag(const FGameplayTag& StateTag)
 	}
 }
 
+
 void ATPS_Hacker_Character::NotifyWeaponArmed(bool bArmed)
 {
 	using namespace TPSGameplayTags;
@@ -742,6 +750,182 @@ void ATPS_Hacker_Character::NotifyReloadFinished()
 	{
 		ActiveStateTags.RemoveTag(Character_State_Action_Reloading);
 		RebuildBlocksAndApplyCancels();
+	}
+}
+
+#pragma endregion
+
+
+#pragma region Input_RQE
+
+// ===============================
+// Input Layer
+// ===============================
+void ATPS_Hacker_Character::Input_FirePressed()
+{
+	Request_FireStart();
+}
+
+void ATPS_Hacker_Character::Input_FireReleased()
+{
+	Request_FireStop();
+}
+
+void ATPS_Hacker_Character::Input_ADSPressed()
+{
+	Request_ADSStart();
+}
+
+void ATPS_Hacker_Character::Input_ADSReleased()
+{
+	Request_ADSStop();
+}
+
+void ATPS_Hacker_Character::Input_ToggleCrouch()
+{
+	Request_ToggleCrouch();
+}
+
+void ATPS_Hacker_Character::Input_ToggleWeapon()
+{
+	Request_ToggleWeapon();
+}
+
+// ===============================
+// Request Layer (Block Gate)
+// ===============================
+bool ATPS_Hacker_Character::Request_FireStart()
+{
+	using namespace TPSGameplayTags;
+
+	// BlockTags는 RelationshipMap 평가 결과
+	if (IsBlockedByTag(Character_Block_Combat_Fire))
+		return false;
+
+	Execute_FireStart();
+	return true;
+}
+
+bool ATPS_Hacker_Character::Request_FireStop()
+{
+	// Stop은 보통 Block을 안 걸어도 되지만, 정책상 필요하면 걸어도 됨
+	Execute_FireStop();
+	return true;
+}
+
+bool ATPS_Hacker_Character::Request_ADSStart()
+{
+	using namespace TPSGameplayTags;
+
+	if (IsBlockedByTag(Character_Block_Combat_ADS))
+		return false;
+
+	Execute_AimStart();
+	return true;
+}
+
+bool ATPS_Hacker_Character::Request_ADSStop()
+{
+	Execute_AimStop();
+	return true;
+}
+
+bool ATPS_Hacker_Character::Request_ToggleCrouch()
+{
+	using namespace TPSGameplayTags;
+
+	if (IsBlockedByTag(Character_Block_Movement_Crouch))
+		return false;
+
+	Execute_ToggleCrouch();
+	return true;
+}
+
+bool ATPS_Hacker_Character::Request_ToggleWeapon()
+{
+	using namespace TPSGameplayTags;
+
+	if (IsBlockedByTag(Character_Block_Combat_Equip))
+		return false;
+
+	Execute_ToggleWeapon();
+	return true;
+}
+
+// ===============================
+// Execute Layer (Do work + StateTags)
+// ===============================
+void ATPS_Hacker_Character::Execute_FireStart()
+{
+	// 실제 총기 동작은 GunComp가 담당
+	if (GunComp)
+	{
+		GunComp->RequestFirePressed();
+		// Firing 태그는 "실제 발사가 시작된 시점"에 올리는 게 맞아서
+		// 보통 GunComp가 성공했을 때 NotifyFirePressed()로 캐릭터에 콜백하게 설계됨.
+	}
+}
+
+void ATPS_Hacker_Character::Execute_FireStop()
+{
+	if (GunComp)
+	{
+		GunComp->RequestFireReleased();
+		// Firing 태그도 GunComp가 NotifyFireReleased()로 내리도록 이미 구성되어 있음
+	}
+}
+
+void ATPS_Hacker_Character::Execute_AimStart()
+{
+	using namespace TPSGameplayTags;
+
+	// 표현 로직(타임라인/카메라)은 캐릭터가 담당
+	bWantsAim = true;
+	StartAimTimelineForward();
+
+	// 상태 태그는 캐릭터에서 확정
+	AddStateTag(Character_State_Combat_ADS);
+}
+
+void ATPS_Hacker_Character::Execute_AimStop()
+{
+	using namespace TPSGameplayTags;
+
+	bWantsAim = false;
+	StartAimTimelineReverse();
+
+	RemoveStateTag(Character_State_Combat_ADS);
+}
+
+void ATPS_Hacker_Character::Execute_ToggleCrouch()
+{
+	using namespace TPSGameplayTags;
+
+	// 실제 crouch는 ACharacter 기능 사용
+	if (bIsCrouched)
+	{
+		UnCrouch();
+		RemoveStateTag(Character_State_Movement_Crouch);
+	}
+	else
+	{
+		Crouch();
+		AddStateTag(Character_State_Movement_Crouch);
+	}
+}
+
+void ATPS_Hacker_Character::Execute_ToggleWeapon()
+{
+	// 기존 로직을 그대로 재사용(추후 Execute에 정리 가능)
+	if (!GunComp) return;
+
+	if (GunComp->IsArmed())
+	{
+		GunComp->RequestUnequip();
+	}
+	else
+	{
+		GunComp->RequestEquipPrimary();
 	}
 }
 

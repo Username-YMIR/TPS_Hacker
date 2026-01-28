@@ -21,6 +21,7 @@ namespace TPSGameplayTags
 	UE_DEFINE_GAMEPLAY_TAG(Character_State_Action_Equipping,  "Character.State.Action.Equipping");
 	UE_DEFINE_GAMEPLAY_TAG(Character_State_Action_Unequipping,"Character.State.Action.Unequipping");
 
+	UE_DEFINE_GAMEPLAY_TAG(Character_Block_Movement,		  "Character.Block.Movement.Crouch");
 	UE_DEFINE_GAMEPLAY_TAG(Character_Block_Combat_Fire,       "Character.Block.Combat.Fire");
 	UE_DEFINE_GAMEPLAY_TAG(Character_Block_Combat_ADS,        "Character.Block.Combat.ADS");
 	UE_DEFINE_GAMEPLAY_TAG(Character_Block_Combat_Reload,     "Character.Block.Combat.Reload");

@@ -109,6 +109,101 @@ public:
 	TEnumAsByte<ECollisionChannel> MyCollisionChannel = ECC_MAX;
 #pragma endregion
 
+#pragma region InputActions
+    protected:
+    	/** Jump Input Action */
+    	UPROPERTY(EditAnywhere, Category="Input|Movement")
+    	class UInputAction* IA_Jump;
+    
+    	/** Move Input Action */
+    	UPROPERTY(EditAnywhere, Category="Input|Movement")
+    	UInputAction* IA_Move;
+    
+    	/** Look Input Action */
+    	UPROPERTY(EditAnywhere, Category="Input|Movement")
+    	UInputAction* IA_Look;
+    
+    	/** Mouse Look Input Action */
+    	UPROPERTY(EditAnywhere, Category="Input|Movement")
+    	UInputAction* IA_MouseLook;
+    
+    	// 달리기, 걷기 토글
+    	UPROPERTY(EditAnywhere, Category="Input|Movement")
+    	UInputAction* IA_Toggle_RunWalk;
+    
+    	//앉기 서기 토글
+    	UPROPERTY(EditAnywhere, Category="Input|Movement")
+    	UInputAction* IA_Toggle_Crouch;
+    	
+    	// 해킹
+    	UPROPERTY(EditAnywhere, Category="Input|Interact")
+    	UInputAction* IA_Hack;
+    
+    	// 상호작용 (줍기)
+    	UPROPERTY(EditAnywhere, Category="Input|Interact")
+    	UInputAction* IA_Interact;
+    	
+    	UPROPERTY(EditAnywhere, Category="Input|Combat")
+    	UInputAction* IA_Toggle_WeaponEquip;
+    	
+    	// 총 발사
+    	UPROPERTY(EditAnywhere, Category="Input|Combat")
+    	UInputAction* IA_Fire;
+    
+    	// 조준
+    	UPROPERTY(EditAnywhere, Category="Input|Combat")
+    	UInputAction* IA_Aim;
+    
+    	//처형
+    	UPROPERTY(EditAnywhere, Category="Input|Combat")
+    	UInputAction* IA_Takedown;
+    	
+    	//포커스모드
+    	UPROPERTY(EditAnywhere, Category="Input|Ability")
+    	UInputAction* IA_FocusMode;
+    #pragma endregion
+	
+	
+#pragma region Input|New
+protected:
+	// ===== Input Layer (Enhanced Input Binding) =====
+	void Input_FirePressed();
+	void Input_FireReleased();
+
+	void Input_ADSPressed();
+	void Input_ADSReleased();
+
+	void Input_ToggleCrouch();
+	
+	void Input_Takedown();
+
+	void Input_ToggleWeapon();
+	
+
+	// ===== Request Layer (Rule/Block Gate) =====
+	bool Request_FireStart();
+	bool Request_FireStop();
+
+	bool Request_ADSStart();
+	bool Request_ADSStop();
+
+	bool Request_ToggleCrouch();
+
+	bool Request_ToggleWeapon();
+
+	// ===== Execute Layer (Do actual work + StateTag) =====
+	void Execute_FireStart();
+	void Execute_FireStop();
+
+	void Execute_AimStart();
+	void Execute_AimStop();
+
+	void Execute_ToggleCrouch();
+
+	void Execute_ToggleWeapon();
+
+#pragma endregion
+	
 #pragma region Input
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
@@ -123,6 +218,10 @@ public:
 	void Do_Fire(); // 좌클릭, 발사
 	void Do_FireReleased(); // 좌클릭 떼기
 	void Do_Takedown(); // F키, 처형
+	
+	
+	// void Input_ToggleCrouch(); // C키, 앉기
+
 	
 	// 포커스 모드
 	void ToggleFocusMode();
@@ -231,61 +330,9 @@ protected:
 	void TickFocusVFXFade();
 #pragma endregion
 	
-#pragma region InputActions
-protected:
-	/** Jump Input Action */
-	UPROPERTY(EditAnywhere, Category="Input|Movement")
-	class UInputAction* JumpAction;
-
-	/** Move Input Action */
-	UPROPERTY(EditAnywhere, Category="Input|Movement")
-	UInputAction* MoveAction;
-
-	/** Look Input Action */
-	UPROPERTY(EditAnywhere, Category="Input|Movement")
-	UInputAction* LookAction;
-
-	/** Mouse Look Input Action */
-	UPROPERTY(EditAnywhere, Category="Input|Movement")
-	UInputAction* MouseLookAction;
-
-	// 달리기, 걷기 토글
-	UPROPERTY(EditAnywhere, Category="Input|Movement")
-	UInputAction* RunWalkToggleAction;
-
-	//앉기 서기 토글
-	UPROPERTY(EditAnywhere, Category="Input|Movement")
-	UInputAction* ToggleCrouchAction;
-	
-	// 해킹
-	UPROPERTY(EditAnywhere, Category="Input|Interact")
-	UInputAction* HackAction;
-
-	// 상호작용 (줍기)
-	UPROPERTY(EditAnywhere, Category="Input|Interact")
-	UInputAction* InteractAction;
-	
-	UPROPERTY(EditAnywhere, Category="Input|Combat")
-	UInputAction* ToggleWeaponAction;
-	
-	// 총 발사
-	UPROPERTY(EditAnywhere, Category="Input|Combat")
-	UInputAction* FireAction;
-
-	// 조준
-	UPROPERTY(EditAnywhere, Category="Input|Combat")
-	UInputAction* AimAction;
-
-	//처형
-	UPROPERTY(EditAnywhere, Category="Input|Combat")
-	UInputAction* TakedownAction;
-	
-	//포커스모드
-	UPROPERTY(EditAnywhere, Category="Input|Ability")
-	UInputAction* FocusModeAction;
-#pragma endregion
 
 #pragma region GameplayTags
+protected:
 	UPROPERTY(VisibleAnywhere, Category="Tags")
 	FGameplayTagContainer ActiveStateTags;
 

@@ -20,6 +20,7 @@ namespace TPSGameplayTags
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Action_Equipping);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_State_Action_Unequipping);
 
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Block_Movement_Crouch);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Block_Combat_Fire);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Block_Combat_ADS);
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Character_Block_Combat_Reload);
